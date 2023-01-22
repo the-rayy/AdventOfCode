@@ -11,6 +11,7 @@ fn main() {
 
     let part2_start = Instant::now();
     let part2_ans = part2(&input);
+
     println!("Part 2 time: {:.2?}", part2_start.elapsed());
     println!("Part 2 ans: {:?}", part2_ans);
 }
