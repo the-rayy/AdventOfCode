@@ -1,5 +1,6 @@
 use std::fs;
 use std::time::Instant;
+use std::cmp::max;
 
 fn main() {
     let input = fs::read_to_string("data/day02.txt")
@@ -19,11 +20,15 @@ fn main() {
 fn part1(input: &str) -> usize {
     input.split("\n").enumerate()
         .map(|(idx, line)| {
-            let sets = line.split(": ").nth(1).unwrap();
-            let sets = sets.split("; ").map(parse_set).collect::<Vec<(usize, usize, usize)>>();
-            let idx = idx + 1;
-            let is_invalid = sets.iter().filter(|set| set.0 > 12 || set.1 > 13 || set.2 > 14).count() > 0;
-            (idx, is_invalid)
+            let is_invalid = line.split(": ")
+                .nth(1)
+                .unwrap()
+                .split("; ")
+                .map(parse_set)
+                .filter(|set| set.0 > 12 || set.1 > 13 || set.2 > 14)
+                .count() > 0;
+
+            (idx + 1, is_invalid)
         })
         .filter(|(_, is_invalid)| !is_invalid)
         .map(|(idx, _)| idx)
@@ -33,12 +38,15 @@ fn part1(input: &str) -> usize {
 fn part2(input: &str) -> usize {
     input.split("\n")
         .map(|line| {
-            let sets = line.split(": ").nth(1).unwrap();
-            let sets = sets.split("; ").map(parse_set).collect::<Vec<(usize, usize, usize)>>();
-            let reds = sets.iter().map(|(r, _, _)| r).max().unwrap();
-            let greens = sets.iter().map(|(_, g, _)| g).max().unwrap();
-            let blues = sets.iter().map(|(_, _, b)| b).max().unwrap();
-            reds * greens * blues
+            let cubes = line.split(": ")
+                .nth(1)
+                .unwrap()
+                .split("; ")
+                .map(parse_set)
+                .fold((0, 0, 0), |acc, set| {
+                    (max(acc.0, set.0), max(acc.1, set.1), max(acc.2, set.2))
+                });
+            cubes.0 * cubes.1 * cubes.2
         })
         .sum::<usize>()
 }
