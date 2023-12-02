@@ -37,11 +37,6 @@ fn part1(input: &str) -> usize {
     cities.iter()
         .permutations(cities.len())
         .map(|route| {
-            let mut route = route.clone();
-            route.push(route.get(0).unwrap());
-            route
-        })
-        .map(|route| {
            let scores = route.iter()
                .tuple_windows()
                .map(|(&&c1, &&c2)| {
@@ -50,7 +45,7 @@ fn part1(input: &str) -> usize {
                        Some(x) => x
                    }
                });
-            scores.clone().sum::<usize>() - scores.max().unwrap()
+            scores.clone().sum::<usize>()
         })
         .min().unwrap()
 }
@@ -74,11 +69,6 @@ fn part2(input: &str) -> usize {
     cities.iter()
         .permutations(cities.len())
         .map(|route| {
-            let mut route = route.clone();
-            route.push(route.get(0).unwrap());
-            route
-        })
-        .map(|route| {
            let scores = route.iter()
                .tuple_windows()
                .map(|(&&c1, &&c2)| {
@@ -87,7 +77,7 @@ fn part2(input: &str) -> usize {
                        Some(x) => x
                    }
                });
-            scores.clone().sum::<usize>() - scores.min().unwrap()
+            scores.clone().sum::<usize>()
         })
         .max().unwrap()
 }
