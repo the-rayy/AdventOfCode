@@ -11,10 +11,10 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    // let part2_start = Instant::now();
-    // let part2_ans = part2(&input);
-    // println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    // println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 fn part1(input: &str) -> usize {
@@ -24,9 +24,34 @@ fn part1(input: &str) -> usize {
         .sum()
 }
 
+fn part2(input: &str) -> usize {
+    let mut scores = input.split("\n")
+        .map(|x| {
+            let parsed = parse_line(x);
+            let score = matches(&parsed.0, &parsed.1);
+            score
+        })
+        .collect::<Vec<usize>>();
+
+    scores.insert(0, 0);
+
+    let mut counts = scores.iter().enumerate()
+        .map(|(i, _)| (i, 1))
+        .collect::<HashMap<usize, usize>>();
+
+    for (i, score) in scores.iter().enumerate() {
+        let current = *counts.get(&i).unwrap_or(&0);
+        for x in i+1..i+score+1 {
+            *counts.entry(x).or_default() += current;
+        }
+    }
+
+    counts.values().sum::<usize>() - 1
+}
+
 fn parse_line(line: &str) -> (HashSet<usize>, HashSet<usize>) {
-    let line = line.split(": ").nth(1).unwrap();
-    let mut line = line.split(" | ");
+    let mut splitted = line.split(": ");
+    let mut line = splitted.nth(1).unwrap().split(" | ");
     let winning = line.nth(0)
         .unwrap()
         .split(" ")
@@ -50,4 +75,8 @@ fn score(winning: &HashSet<usize>, guessed: &HashSet<usize>) -> usize {
         0 => 0,
         x => 2_usize.pow(x as u32 - 1)
     }
+}
+
+fn matches(winning: &HashSet<usize>, guessed: &HashSet<usize>) -> usize {
+    winning.intersection(guessed).count()
 }
