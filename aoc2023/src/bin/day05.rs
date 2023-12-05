@@ -1,7 +1,6 @@
-use std::cmp::max;
 use std::fs;
 use std::time::Instant;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use itertools::Itertools;
 
 fn main() {
@@ -48,31 +47,30 @@ fn part2(input: &str) -> u32 {
     let mut seeds = seeds.iter()
         .tuples()
         .map(|(&start, &len)| {
-            HashSet::from([start, start + len - 1])
+            Range{start, end: start + len - 1}
         })
-        .collect::<Vec<HashSet<u32>>>();
-
-    println!("{:?}", seeds);
+        .collect::<Vec<Range>>();
 
     for key in MAPPING_KEYS {
         seeds = seeds.iter()
             .map(|seed| {
                 let m = mappings.get(key).unwrap();
-                let min = *seed.iter().min().unwrap();
-                let max = *seed.iter().max().unwrap();
-                println!("key {} disc: {:?}", key, m.discontinuities());
-                m.discontinuities().union(seed).into_iter()
-                    .filter(|&&x| x >= min && x <= max)
-                    .map(|&x| m.map(x))
-                    // .map(|&x| x)
-                    .collect::<HashSet<u32>>()
+                let foo = m.rows.iter().map(|r| r.as_range()).collect::<Vec<Range>>();
+                let new_seeds = seed.split(&foo);
+                new_seeds.iter()
+                    .map(|r| {
+                        Range{start: m.map(r.start), end: m.map(r.end)}
+                    })
+                    .collect::<Vec<Range>>()
             })
-            .collect::<Vec<HashSet<u32>>>();
-
-        println!("after {}: {:?}", key, seeds);
+            .flatten()
+            .collect()
     }
 
-    *seeds.iter().flatten().min().unwrap()
+    seeds.iter()
+        .map(|r| {r.start})
+        .min()
+        .unwrap()
 }
 
 fn parse(input: &str) -> (Vec<u32>, HashMap<&str, Mapping>){
@@ -125,19 +123,6 @@ impl Mapping {
 
         x
     }
-
-    fn discontinuities(&self) -> HashSet<u32> {
-        self.rows.iter()
-            .map(|r| {
-                [max(r.start() as i32 - 1, 0) as u32,
-                    r.start(),
-                    r.end(),
-                    r.end()+1
-                ]
-            })
-            .flatten()
-            .collect()
-    }
 }
 
 #[derive(Debug)]
@@ -154,11 +139,36 @@ impl MappingRow {
         } else { None }
     }
 
-    fn start(&self) -> u32 {
-        self.source
+    fn as_range(&self) -> Range {
+        Range{start: self.source, end: self.source + self.range -1}
     }
+}
 
-    fn end(&self) -> u32 {
-        self.source + self.range
+#[derive(Debug, Copy, Clone)]
+struct Range {
+    start: u32,
+    end: u32,
+}
+
+impl Range {
+    fn split(&self, others: &Vec<Range>) -> Vec<Range> {
+        let mut splitpoints = Vec::<u32>::new();
+        splitpoints.push(self.start);
+        splitpoints.push(self.end);
+        for o in others {
+            if o.start > 0 {
+                splitpoints.push(o.start - 1);
+            }
+            splitpoints.push(o.start);
+            splitpoints.push(o.end);
+            splitpoints.push(o.end + 1);
+        }
+        splitpoints = splitpoints.into_iter().filter(|x| *x >= self.start && *x <= self.end).collect();
+        splitpoints.sort();
+
+        splitpoints.into_iter()
+            .tuples()
+            .map(|(start, end)| Range{start, end })
+            .collect()
     }
 }
