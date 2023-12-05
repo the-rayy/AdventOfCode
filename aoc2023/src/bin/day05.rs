@@ -28,7 +28,7 @@ const MAPPING_KEYS: [&str; 7] = [
     "humidity-to-location"
 ];
 
-fn part1(input: &str) -> u32 {
+fn part1(input: &str) -> u64 {
     let (seeds, mappings) = parse(input);
 
     seeds.iter()
@@ -41,7 +41,7 @@ fn part1(input: &str) -> u32 {
         }).min().unwrap()
 }
 
-fn part2(input: &str) -> u32 {
+fn part2(input: &str) -> u64 {
     let (seeds, mappings) = parse(input);
 
     let mut seeds = seeds.iter()
@@ -73,15 +73,15 @@ fn part2(input: &str) -> u32 {
         .unwrap()
 }
 
-fn parse(input: &str) -> (Vec<u32>, HashMap<&str, Mapping>){
+fn parse(input: &str) -> (Vec<u64>, HashMap<&str, Mapping>){
     let mut blocks = input.split("\n\n");
     let seeds = blocks.next()
         .unwrap()
         .strip_prefix("seeds: ")
         .unwrap()
         .split(" ")
-        .map(|x| x.parse::<u32>().unwrap())
-        .collect::<Vec<u32>>();
+        .map(|x| x.parse::<u64>().unwrap())
+        .collect::<Vec<u64>>();
 
     let maps = blocks.map(parse_block)
         .collect::<HashMap<&str, Mapping>>();
@@ -96,9 +96,9 @@ fn parse_block(block: &str) -> (&str, Mapping) {
         rows: lines.map(|line| {
             let mut splitted = line.split(" ");
             MappingRow{
-                destination: splitted.next().unwrap().parse::<u32>().unwrap(),
-                source: splitted.next().unwrap().parse::<u32>().unwrap(),
-                range: splitted.next().unwrap().parse::<u32>().unwrap(),
+                destination: splitted.next().unwrap().parse::<u64>().unwrap(),
+                source: splitted.next().unwrap().parse::<u64>().unwrap(),
+                range: splitted.next().unwrap().parse::<u64>().unwrap(),
             }
         })
             .collect(),
@@ -113,7 +113,7 @@ struct Mapping {
 }
 
 impl Mapping {
-    fn map(&self, x: u32) -> u32 {
+    fn map(&self, x: u64) -> u64 {
         for row in &self.rows {
             match row.map(x) {
                 Some(y) => { return y; }
@@ -127,32 +127,32 @@ impl Mapping {
 
 #[derive(Debug)]
 struct MappingRow {
-    source: u32,
-    destination: u32,
-    range: u32,
+    source: u64,
+    destination: u64,
+    range: u64,
 }
 
 impl MappingRow {
-    fn map(&self, x: u32) -> Option<u32> {
+    fn map(&self, x: u64) -> Option<u64> {
         if x >= self.source && x < self.source + self.range {
             Some(x - self.source + self.destination)
         } else { None }
     }
 
     fn as_range(&self) -> Range {
-        Range{start: self.source, end: self.source + self.range -1}
+        Range{start: self.source, end: self.source + self.range}
     }
 }
 
 #[derive(Debug, Copy, Clone)]
 struct Range {
-    start: u32,
-    end: u32,
+    start: u64,
+    end: u64,
 }
 
 impl Range {
     fn split(&self, others: &Vec<Range>) -> Vec<Range> {
-        let mut splitpoints = Vec::<u32>::new();
+        let mut splitpoints = Vec::<u64>::new();
         splitpoints.push(self.start);
         splitpoints.push(self.end);
         for o in others {
