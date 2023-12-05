@@ -33,8 +33,9 @@ fn part2(input: &str) -> usize {
         })
         .collect::<Vec<usize>>();
 
-    scores.insert(0, 0);
+    scores.insert(0, 0); //just to align with card numbers starting with 1
 
+    //because we start with 1 copy of each card
     let mut counts = scores.iter().enumerate()
         .map(|(i, _)| (i, 1))
         .collect::<HashMap<usize, usize>>();
@@ -50,14 +51,18 @@ fn part2(input: &str) -> usize {
 }
 
 fn parse_line(line: &str) -> (HashSet<usize>, HashSet<usize>) {
-    let mut splitted = line.split(": ");
-    let mut line = splitted.nth(1).unwrap().split(" | ");
+    let mut line = line.split(": ")
+        .nth(1)
+        .unwrap()
+        .split(" | ");
+
     let winning = line.nth(0)
         .unwrap()
         .split(" ")
         .filter(|x| x.len() > 0)
         .map(|x| x.parse::<usize>().unwrap())
         .collect::<HashSet<usize>>();
+
     let guessed = line.nth(0)
         .unwrap()
         .split(" ")
@@ -69,9 +74,7 @@ fn parse_line(line: &str) -> (HashSet<usize>, HashSet<usize>) {
 }
 
 fn score(winning: &HashSet<usize>, guessed: &HashSet<usize>) -> usize {
-    let hits = winning.intersection(guessed).count();
-
-    match hits {
+    match matches(winning, guessed) {
         0 => 0,
         x => 2_usize.pow(x as u32 - 1)
     }
