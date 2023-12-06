@@ -144,7 +144,7 @@ impl MappingRow {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq)]
 struct Range {
     start: u64,
     end: u64,
