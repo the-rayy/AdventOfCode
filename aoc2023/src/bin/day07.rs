@@ -1,6 +1,4 @@
-use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet};
-use std::convert::TryInto;
+use std::collections::HashMap;
 use std::fs;
 use std::time::Instant;
 
@@ -25,7 +23,7 @@ fn part1(input: &str) -> usize {
     cardbids.sort_by_key(|(hand, _)| hand.as_sortable());
 
     cardbids.iter().enumerate()
-        .map(|(idx, (hand, bid))| {
+        .map(|(idx, (_, bid))| {
             bid * (idx + 1)
         })
         .sum()
@@ -37,7 +35,7 @@ fn part2(input: &str) -> usize {
     cardbids.sort_by_key(|(hand, _)| hand.as_sortable_j());
 
     cardbids.iter().enumerate()
-        .map(|(idx, (hand, bid))| {
+        .map(|(idx, (_, bid))| {
             bid * (idx + 1)
         })
         .sum()
@@ -61,8 +59,8 @@ fn parse(input: &str) -> Vec<(Hand, usize)> {
 struct Hand {
     value: u8,
     value_j: u8,
-    cards: Vec<u8>,
-    cards_j: Vec<u8>,
+    cards: [u8; 5],
+    cards_j: [u8; 5],
 }
 
 impl Hand {
@@ -93,14 +91,32 @@ impl Hand {
 
         let value_j = value_j(&cards_j);
 
+        let mut cards = cards.iter();
+        let cards = [
+            *cards.next().unwrap(),
+            *cards.next().unwrap(),
+            *cards.next().unwrap(),
+            *cards.next().unwrap(),
+            *cards.next().unwrap(),
+        ];
+
+        let mut cards_j = cards_j.iter();
+        let cards_j = [
+            *cards_j.next().unwrap(),
+            *cards_j.next().unwrap(),
+            *cards_j.next().unwrap(),
+            *cards_j.next().unwrap(),
+            *cards_j.next().unwrap(),
+        ];
+
         Hand{value, value_j, cards, cards_j}
     }
 
-    fn as_sortable(&self) -> (u8, Vec<u8>) {
+    fn as_sortable(&self) -> (u8, [u8; 5]) {
         (self.value, self.cards.clone())
     }
 
-    fn as_sortable_j(&self) -> (u8, Vec<u8>) {
+    fn as_sortable_j(&self) -> (u8, [u8; 5]) {
         (self.value_j, self.cards_j.clone())
     }
 }
