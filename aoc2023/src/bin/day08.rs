@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs;
 use std::time::Instant;
+use num::integer::lcm;
 
 fn main() {
     let input = fs::read_to_string("data/day08.txt")
@@ -11,10 +12,10 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    // let part2_start = Instant::now();
-    // let part2_ans = part2(&input);
-    // println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    // println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 const START: &str = "AAA";
@@ -38,6 +39,46 @@ fn part1(input: &str) -> usize {
             break step;
         }
     }
+}
+
+fn part2(input: &str) -> usize {
+    let (instr, nodes) = parse(input);
+
+    let mut current = nodes.keys()
+        .filter(|k| k.ends_with("A"))
+        .map(|k| k.clone())
+        .collect::<Vec<String>>();
+    let mut lcm_compounds = current.iter()
+        .map(|_| 0)
+        .collect::<Vec<usize>>();
+    let mut step = 0;
+
+    loop {
+        let i = instr.get(step % instr.len()).unwrap();
+
+        current = current.iter().map(|c| {
+            match i {
+                'L' => nodes.get(c.as_str()).unwrap().0.clone(),
+                'R' => nodes.get(c.as_str()).unwrap().1.clone(),
+                _ => unreachable!()
+            }
+        })
+            .collect();
+
+        step += 1;
+
+        current.iter()
+            .enumerate()
+            .filter(|(_, val)| val.ends_with("Z"))
+            .for_each(|(idx, _)| *lcm_compounds.get_mut(idx).unwrap() = step);
+
+        if lcm_compounds.iter().all(|c| *c > 0) {
+            break
+        }
+    }
+
+    lcm_compounds.iter()
+        .fold(1, |acc, &x| lcm(acc, x) )
 }
 
 
