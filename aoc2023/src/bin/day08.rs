@@ -46,7 +46,7 @@ fn part2(input: &str) -> usize {
     nodes.keys()
         .collect::<Vec<&&str>>()
         .par_iter()
-        .filter(|k| { k.ends_with("A") })
+        .filter(|&&k| { k.ends_with("A") })
         .map(|&&k| {
             let mut current = k;
             let mut step = 0;
