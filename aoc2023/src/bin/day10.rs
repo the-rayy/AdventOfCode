@@ -1,6 +1,7 @@
 use std::cmp::min;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
+use std::path::Component::ParentDir;
 use std::time::Instant;
 
 fn main() {
@@ -12,19 +13,25 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    // let part2_start = Instant::now();
-    // let part2_ans = part2(&input);
-    // println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    // println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 
 fn part1(input: &str) -> usize {
     let mut solver = Solver::new(input);
 
-    println!("{:?}", solver);
-
     solver.solve()
+
+}
+
+
+fn part2(input: &str) -> usize {
+    let mut solver = Solver::new(input);
+
+    solver.solve2()
 
 }
 
@@ -53,6 +60,45 @@ impl Solver {
             distances: HashMap::new(),
             tovisit: Vec::new()
         }
+    }
+
+    fn solve2(&mut self) -> usize {
+        self.solve();
+
+        let max_i = self.grid.keys()
+            .map(|k| k.0)
+            .max()
+            .unwrap();
+
+        let max_j = self.grid.keys()
+            .map(|k| k.1)
+            .max()
+            .unwrap();
+
+        let mut total = 0;
+        for i in 0..max_i {
+            let mut counter = 0;
+            let mut pipe_last = ' ';
+            for j in 0..max_j {
+                match (self.distances.contains_key(&(i, j)), self.grid.get(&(i, j))) {
+                    (false, _) => if counter % 2 == 1 {
+                        total += 1;
+                    }
+                    (true, Some(x)) => {
+                        match (x, pipe_last) {
+                            ('|', _) => counter += 1,
+                            ('S', _) => pipe_last = 'L',
+                            ('L', _) | ('F', _) => pipe_last = *x,
+                            ('7', 'L') | ('J', 'F') => counter +=1,
+                            _ => {}
+                        }
+                    }
+                    _ => unreachable!()
+                }
+            }
+        }
+
+        total
     }
 
     fn solve(&mut self) -> usize {
@@ -84,8 +130,6 @@ impl Solver {
                 self.tovisit.insert(0, (neigh[1], depth+1))
             }
         }
-
-        println!("{:?}", self.distances);
 
         *self.distances.values().max().unwrap()
     }
