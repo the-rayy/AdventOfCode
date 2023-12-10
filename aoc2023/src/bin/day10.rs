@@ -38,8 +38,6 @@ fn part2(input: &str) -> usize {
 #[derive(Debug)]
 struct Solver {
     grid: HashMap<(usize, usize), char>,
-    distances: HashMap<(usize, usize), usize>,
-    tovisit: Vec<((usize, usize), usize)>
 }
 
 impl Solver {
@@ -57,13 +55,16 @@ impl Solver {
 
         Solver{
             grid,
-            distances: HashMap::new(),
-            tovisit: Vec::new()
         }
     }
 
     fn solve2(&mut self) -> usize {
-        self.solve();
+        let (s_pos, s_val) = self.what_s_should_be();
+        self.grid.insert(s_pos, s_val);
+
+        let main_loop = self.find_loop(s_pos)
+            .into_iter()
+            .collect::<HashSet<(usize, usize)>>();
 
         let max_i = self.grid.keys()
             .map(|k| k.0)
@@ -80,16 +81,14 @@ impl Solver {
             let mut counter = 0;
             let mut pipe_last = ' ';
             for j in 0..max_j {
-                match (self.distances.contains_key(&(i, j)), self.grid.get(&(i, j))) {
+                match (main_loop.contains(&(i, j)), self.grid.get(&(i, j))) {
                     (false, _) => if counter % 2 == 1 {
                         total += 1;
                     }
                     (true, Some(x)) => {
-                        match (x, pipe_last) {
-                            ('|', _) => counter += 1,
-                            ('S', _) => pipe_last = 'L',
-                            ('L', _) | ('F', _) => pipe_last = *x,
-                            ('7', 'L') | ('J', 'F') => counter +=1,
+                        match (pipe_last, x) {
+                            (_, '|') | ('L', '7') | ('F', 'J') => counter += 1,
+                            (_, 'L') | (_, 'F') => pipe_last = *x,
                             _ => {}
                         }
                     }
@@ -102,61 +101,66 @@ impl Solver {
     }
 
     fn solve(&mut self) -> usize {
-        let start = self.grid.iter()
+        let (s_pos, s_val) = self.what_s_should_be();
+        self.grid.insert(s_pos, s_val);
+
+        let main_loop = self.find_loop(s_pos);
+
+        main_loop.len() / 2
+    }
+
+    fn find_loop(&mut self, s_pos: (usize, usize)) -> Vec<(usize, usize)> {
+        let s_neighbours = self.neighbours(s_pos);
+
+        let mut main_loop = Vec::<(usize, usize)>::new();
+        main_loop.push(s_pos);
+        main_loop.push(s_neighbours[0]);
+
+        loop {
+            let current = *main_loop.last().unwrap();
+            let previous = *main_loop.get(main_loop.len() - 2).unwrap();
+            let next = *self.neighbours(current).iter()
+                .filter(|candidate| **candidate != previous)
+                .next()
+                .unwrap();
+            if next == s_pos {
+                break;
+            }
+            main_loop.push(next);
+        }
+        main_loop
+    }
+
+    fn what_s_should_be(&self) -> ((usize, usize), char) {
+        let pos = self.grid.iter()
             .filter(|(_, v)| {
-            **v == 'S'
-        })
+                **v == 'S'
+            })
             .map(|(&k, _)| k)
             .next()
             .unwrap();
 
-        self.distances.insert(start, 0);
+        let up = self.grid.get(&(pos.0-1, pos.1)).unwrap();
+        let down = self.grid.get(&(pos.0+1, pos.1)).unwrap();
+        let left = self.grid.get(&(pos.0, pos.1-1)).unwrap();
+        let right = self.grid.get(&(pos.0, pos.1+1)).unwrap();
 
-        let main_loop = self.find_main_loop_start(&start);
+        let up = ['|', 'F', '7'].contains(up);
+        let down = ['|', 'L', 'J'].contains(down);
+        let left = ['-', 'L', 'F'].contains(left);
+        let right = ['-', '7', 'J'].contains(right);
 
-        main_loop.iter()
-            .for_each(|k| {
-                self.tovisit.push((*k, 0));
-            });
+        let s = match (up, down, left, right) {
+            (true, true, _, _) => '|',
+            (true, _, true, _) => 'J',
+            (true, _, _, true) => 'L',
+            (_, true, true, _) => '7',
+            (_, true, _, true) => 'F',
+            (_, _, true, true) => '-',
+            _ => unreachable!()
+        };
 
-        while !self.tovisit.is_empty() {
-            let (point, depth) = self.tovisit.pop().unwrap();
-            self.distances.insert(point, depth+1);
-            let neigh = self.neighbours(point);
-            if !self.distances.contains_key(&neigh[0]) {
-                self.tovisit.insert(0, (neigh[0], depth+1))
-            }
-            if !self.distances.contains_key(&neigh[1]) {
-                self.tovisit.insert(0, (neigh[1], depth+1))
-            }
-        }
-
-        *self.distances.values().max().unwrap()
-    }
-
-    fn find_main_loop_start(&mut self, start: &(usize, usize)) -> Vec<(usize, usize)> {
-        let mut main_loop = Vec::<(usize, usize)>::new();
-        if let Some(down) = self.grid.get(&(start.0 + 1, start.1)) {
-            if ['|', 'L', 'J'].contains(&down) {
-                main_loop.push((start.0 + 1, start.1))
-            }
-        }
-        if let Some(down) = self.grid.get(&(start.0 - 1, start.1)) {
-            if ['|', '7', 'F'].contains(&down) {
-                main_loop.push((start.0 - 1, start.1))
-            }
-        }
-        if let Some(down) = self.grid.get(&(start.0, start.1 - 1)) {
-            if ['-', 'L', 'F'].contains(&down) {
-                main_loop.push((start.0, start.1 - 1))
-            }
-        }
-        if let Some(down) = self.grid.get(&(start.0, start.1 + 1)) {
-            if ['-', 'J', '7'].contains(&down) {
-                main_loop.push((start.0, start.1 + 1))
-            }
-        }
-        main_loop
+        (pos, s)
     }
 
     fn neighbours(&self, point: (usize, usize)) -> [(usize, usize); 2] {
