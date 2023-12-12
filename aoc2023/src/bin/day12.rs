@@ -1,9 +1,6 @@
-use std::cmp::{max, min};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fs;
 use std::time::Instant;
-use itertools::Itertools;
-use num::abs;
 
 fn main() {
     let input = fs::read_to_string("data/day12.txt")
@@ -68,7 +65,7 @@ struct CachedCounter {
 }
 
 impl CachedCounter {
-    fn count(&mut self, row: &str, nums: &Vec<u8>) -> usize {
+    fn count(&mut self, row: &str, nums: &[u8]) -> usize {
         let hash = format!("{:?}{:?}", row, nums);
 
         if let Some(x) = self.cache.get(&hash) {
@@ -102,7 +99,7 @@ impl CachedCounter {
                     return 0
                 }
                 let row = &row[l..];
-                let nums = nums[1..].iter().map(|x| *x).collect::<Vec<u8>>();
+                let nums = &nums[1..];
 
                 let next = row.chars().next();
                 if next.is_some() && next.unwrap() == '#' {
