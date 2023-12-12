@@ -24,7 +24,7 @@ fn main() {
 fn part1(input: &str) -> usize {
     parse(input).iter()
         .map(|line| {
-            count_possibilities(line.0, &line.1)
+            count(line.0, &line.1)
         })
         .sum()
 }
@@ -42,49 +42,49 @@ fn parse(input: &str) -> Vec<(&str, Vec<u8>)> {
         .collect()
 }
 
-fn count_possibilities(row: &str, nums: &Vec<u8>) -> usize {
-    if row.contains("?") {
-        let row1 = row.replacen("?", ".", 1);
-        let row2 = row.replacen("?", "#", 1);
-
-        let mut total = 0;
-        if partial_valid(row1.as_str(), nums) {
-            total += count_possibilities(row1.as_str(), nums);
-        }
-        if partial_valid(row2.as_str(), nums) {
-            total += count_possibilities(row2.as_str(), nums);
-        }
-        return total
+fn count(row: &str, nums: &Vec<u8>) -> usize {
+    // println!("{} {:?}", row, nums);
+    if row.len() == 0 && nums.len() == 0 {
+        return 1;
     }
 
-    match partial_valid(row, nums) {
-        true => 1,
-        false => 0
-    }
-}
-
-fn partial_valid(row: &str, nums: &Vec<u8>) -> bool {
-    if row.chars()
-        .filter(|c| *c != '.')
-        .count() < nums.iter().map(|x| *x as usize).sum::<usize>() {
-        return false
+    if row.len() == 0 {
+        return 0;
     }
 
-    let row2 = row.splitn(2, "?").next().unwrap();
-    let mut actual_nums = row2.split(".")
-        .filter(|part| part.len() > 0)
-        .map(|part| part.len() as u8)
-        .collect::<Vec<u8>>();
-    if row.len() != row2.len() && row2.ends_with("#") {
-        actual_nums.pop();
+    match row.chars().next().unwrap() {
+        '.' => count(&row[1..], nums),
+        '#' => {
+            let l = match nums.get(0) {
+                Some(x) => *x as usize,
+                None => return 0
+            };
+            if l > row.len() {
+                return 0;
+            }
+            let taken = &row[..l];
+            if taken.chars().any(|c| c == '.') {
+                return 0
+            }
+            let row = &row[l..];
+            let nums = nums[1..].iter().map(|x| *x).collect::<Vec<u8>>();
+
+            let next = row.chars().next();
+            if next.is_some() && next.unwrap() == '#' {
+                return 0
+            }
+            if next.is_some() && next.unwrap() == '?' {
+                let row1 = row.replacen("?", ".", 1);
+                return count(row1.as_str(), &nums);
+            }
+            count(row, &nums)
+        },
+        '?' => {
+            let row1 = row.replacen("?", ".", 1);
+            let row2 = row.replacen("?", "#", 1);
+
+            count(row1.as_str(), nums) + count(row2.as_str(), nums)
+        },
+        _ => unreachable!()
     }
-
-    if actual_nums.len() > nums.len() {
-        return false
-    }
-
-    let nums = &nums[0..actual_nums.len()];
-
-    let ret = *nums == actual_nums;
-    return ret
 }
