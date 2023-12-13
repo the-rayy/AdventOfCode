@@ -24,7 +24,7 @@ fn part1(input: &str) -> usize {
             block.split("\n")
                 .map(|line| line.chars().collect::<Vec<char>>()).collect::<Block>()
         })
-        .map(|block| score(&block))
+        .map(|block| score_smudges(&block, 0))
         .sum()
 }
 
@@ -35,20 +35,21 @@ fn part2(input: &str) -> usize {
             block.split("\n")
                 .map(|line| line.chars().collect::<Vec<char>>()).collect::<Block>()
         })
-        .map(|block| score(&block))
+        .map(|block| score_smudges(&block, 1))
         .sum()
 }
 
 type Block = Vec<Vec<char>>;
 
-fn score(block: &Block) -> usize {
-    let row = match (0..block.len()-1).filter(|r| is_reflected_at(block, r+1)).next() {
+
+fn score_smudges(block: &Block, target: usize) -> usize {
+    let row = match (0..block.len()-1).filter(|r| smudges(block, r+1) == target).next() {
         Some(x) => x+1,
         None => 0
     };
 
     let transposed_block = transpose(block);
-    let column = match (0..transposed_block.len()-1).filter(|r| is_reflected_at(&transposed_block, r+1)).next() {
+    let column = match (0..transposed_block.len()-1).filter(|r| smudges(&transposed_block, r+1) == target).next() {
         Some(x) => x+1,
         None => 0
     };
@@ -69,10 +70,15 @@ fn transpose(v: &Block) -> Block {
         .collect()
 }
 
-fn is_reflected_at(b: &Block, i: usize) -> bool {
+fn smudges(b: &Block, i: usize) -> usize {
     let left = &b[..i];
     let right = &b[i..];
 
     left.iter().rev().zip(right)
-        .all(|(l, r)| l == r)
+        .map(|(l, r)| {
+            l.iter().zip_eq(r)
+                .filter(|(x1, x2)| **x1 != **x2)
+                .count()
+        })
+        .sum()
 }
