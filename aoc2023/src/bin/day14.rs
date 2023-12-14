@@ -66,16 +66,8 @@ fn part2(input: &str) -> usize {
         cache.insert(hash.finish(), (i, score(&grid, dim_i)));
         i += 1;
     }
+    let target = cycle_start - 1 + (1_000_000_000 - cycle_start) % cycle_len;
 
-    println!("{:?}", cache);
-    println!("cycle_len: {}", cycle_len);
-    println!("cycle_start: {}", cycle_start);
-    let eff = (1_000_000_000 - cycle_start) % cycle_len;
-    println!("{}", eff);
-
-    let target = cycle_start + eff - 1;
-
-    // cache.iter().find(|(_, (i, _))| i == &(cycle_start + 1000000000 % cycle_len)).unwrap().1.1
     cache.iter().find(|(_, (i, _))| *i == target).unwrap().1.1
 }
 
