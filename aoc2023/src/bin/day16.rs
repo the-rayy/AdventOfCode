@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::time::Instant;
+use rayon::prelude::*;
 
 fn main() {
     let input = fs::read_to_string("data/day16.txt")
@@ -11,22 +12,64 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    // let part2_start = Instant::now();
-    // let part2_ans = part2(&input);
-    // println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    // println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 
 fn part1(input: &str) -> usize {
-    let mut solver = Solver::new(input);
-    solver.solve()
+    let (grid, grid_max_i, grid_max_j) = parse(input);
+    let mut solver = Solver::new(grid.clone(), grid_max_i, grid_max_j);
+    solver.solve((0, 0), RIGHT)
+}
+
+
+fn part2(input: &str) -> usize {
+    let (grid, grid_max_i, grid_max_j) = parse(input);
+
+    let mut options = Vec::<((i32, i32), (i32, i32))>::new();
+    for i in 0..grid_max_i {
+        options.push(((i, 0), RIGHT));
+        options.push(((i, grid_max_j), LEFT));
+    }
+    for j in 0..grid_max_j {
+        options.push(((0, j), DOWN));
+        options.push(((grid_max_i, j), UP));
+    }
+
+    options.par_iter()
+        .map(|(pos, dir)| {
+            let mut solver = Solver::new(grid.clone(), grid_max_i, grid_max_j);
+            solver.solve(*pos, *dir)
+        })
+        .max()
+        .unwrap()
 }
 
 const UP: (i32, i32) = (-1, 0);
 const DOWN: (i32, i32) = (1, 0);
 const LEFT: (i32, i32) = (0, -1);
 const RIGHT: (i32, i32) = (0, 1);
+
+fn parse(input: &str) -> (HashMap<(i32, i32), char>, i32, i32) {
+    let grid = input.split("\n")
+        .enumerate()
+        .map(|(i, line)| {
+            line.chars()
+                .enumerate()
+                .map(|(j, c)| ((i as i32, j as i32), c))
+                .collect::<Vec<_>>()
+        })
+        .flatten()
+        .collect::<HashMap<(i32, i32), char>>();
+
+    let grid_max_i = grid.keys().map(|(x, _)| x).max().unwrap().clone();
+    let grid_max_j = grid.keys().map(|(_, y)| y).max().unwrap().clone();
+
+    return (grid, grid_max_i, grid_max_j);
+}
 
 struct Solver {
     grid: HashMap<(i32, i32), char>,
@@ -37,21 +80,7 @@ struct Solver {
 }
 
 impl Solver {
-    fn new(input: &str) -> Solver {
-        let grid = input.split("\n")
-            .enumerate()
-            .map(|(i, line)| {
-                line.chars()
-                    .enumerate()
-                    .map(|(j, c)| ((i as i32, j as i32), c))
-                    .collect::<Vec<_>>()
-            })
-            .flatten()
-            .collect::<HashMap<(i32, i32), char>>();
-
-        let grid_max_i = grid.keys().map(|(x, _)| x).max().unwrap().clone();
-        let grid_max_j = grid.keys().map(|(_, y)| y).max().unwrap().clone();
-
+    fn new(grid: HashMap<(i32, i32), char>, grid_max_i: i32, grid_max_j: i32) -> Solver {
         Solver{
             grid,
             grid_max_i,
@@ -61,40 +90,8 @@ impl Solver {
         }
     }
 
-    fn debug(&self) {
-        let min_x = *self.grid.keys().map(|(x, _)| x).min().unwrap();
-        let max_x = *self.grid.keys().map(|(x, _)| x).max().unwrap();
-        let min_y = *self.grid.keys().map(|(_, y)| y).min().unwrap();
-        let max_y = *self.grid.keys().map(|(_, y)| y).max().unwrap();
-
-        let mut foo = 0;
-
-        for i in min_x..=max_x {
-            for j in min_y..=max_y {
-                if let Some(c) = self.energized.iter().filter(|((x, y), _)| *x == i && *y == j).next() {
-                    print!("#");
-                    foo += 1;
-                    // print!("{}", match c.1 {
-                    //     UP => '^',
-                    //     DOWN => 'v',
-                    //     LEFT => '<',
-                    //     RIGHT => '>',
-                    //     _ => unreachable!(),
-                    // });
-                } else if let Some(c) = self.grid.get(&(i, j)) {
-                    print!("{}", c);
-                } else {
-                    print!(" ");
-                }
-            }
-            println!();
-        }
-        println!();
-        println!("{}", foo);
-    }
-
-    fn solve(&mut self) -> usize {
-        self.push((0, 0), RIGHT);
+    fn solve(&mut self, start_pos: (i32, i32), start_dir: (i32, i32)) -> usize {
+        self.push(start_pos, start_dir);
 
         while let Some((pos, dir)) = self.next.pop() {
 
@@ -130,7 +127,6 @@ impl Solver {
             }
         };
 
-        self.debug();
         self.energized.iter()
             .map(|(pos, _)| *pos)
             .collect::<HashSet<(i32, i32)>>()
