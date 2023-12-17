@@ -48,7 +48,8 @@ struct Solver {
     grid: HashMap<(i32, i32), u64>,
     grid_max_i: i32,
     grid_max_j: i32,
-    next: BinaryHeap<(i64, (i32, i32), (i32, i32), u8)>,
+    // next: Vec<((i32, i32), u64, [(i32, i32); 3])>,
+    next: BinaryHeap<(i64, (i32, i32), [(i32, i32); 3])>,
     scores: HashMap<((i32, i32), (i32, i32)), (u64, u8)>
 }
 
@@ -64,27 +65,26 @@ impl Solver {
     }
 
     fn solve(&mut self, start: (i32, i32), target: (i32, i32)) -> u64 {
-        self.push(start, 0, (0, 0), 0);
+        self.push(start, 0, [(0, 0); 3]);
 
-        while let Some((score, pos, last_dir, last_dir_count)) = self.next.pop() {
+        while let Some((score, pos, dir_history)) = self.next.pop() {
             let dirs = vec![(0, 1), (0, -1), (1, 0), (-1, 0)];
             let score = -score as u64;
 
             for dir in dirs {
-                if dir == last_dir && last_dir_count == 3 {
+                if dir_history[2] == (-dir.0, -dir.1) {
+                    continue;
+                }
+                if dir == dir_history[0] && dir == dir_history[1] && dir == dir_history[2] {
                     continue;
                 }
                 let new_pos = (pos.0 + dir.0, pos.1 + dir.1);
-                let (new_dir, new_dir_count) = if dir == last_dir {
-                    (last_dir, last_dir_count + 1)
-                } else {
-                    (dir, 1)
-                };
+                let new_dirs = [dir_history[1], dir_history[2], dir];
 
                 match self.grid.get(&new_pos) {
                     Some(new_score) => {
                         let new_score = *new_score + score;
-                        self.push(new_pos, new_score, new_dir, new_dir_count);
+                        self.push(new_pos, new_score, new_dirs);
                         if new_pos == target {
                             return new_score;
                         }
@@ -96,18 +96,31 @@ impl Solver {
         unreachable!()
     }
 
-    fn push(&mut self, pos: (i32, i32), score: u64, dir: (i32, i32), dir_count: u8) {
+    fn push(&mut self, pos: (i32, i32), score: u64, dirs: [(i32, i32); 3]) {
         if pos.0 < 0 || pos.1 < 0 || pos.0 > self.grid_max_i || pos.1 > self.grid_max_j {
             return;
         }
 
+        let (dir, count) = foo(dirs);
+
         if let Some((old_score, old_dir_count)) = self.scores.get(&(pos, dir)) {
-            if dir_count >= *old_dir_count && score >= *old_score {
+            if count >= *old_dir_count && score >= *old_score {
                 return;
             }
         }
 
-        self.scores.insert((pos, dir), (score, dir_count));
-        self.next.push((-(score as i64), pos, dir, dir_count));
+        self.scores.insert((pos, dir), (score, count));
+        self.next.push((-(score as i64), pos, dirs));
     }
+}
+
+fn foo(dirs: [(i32, i32); 3]) -> ((i32, i32), u8) {
+    let d = dirs[2];
+    if dirs[1] != dirs[2] {
+        return (d, 1);
+    }
+    if dirs[0] != dirs[1] {
+        return (d, 2);
+    }
+    return (d, 3);
 }
