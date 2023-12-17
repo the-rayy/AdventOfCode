@@ -12,10 +12,10 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    // let part2_start = Instant::now();
-    // let part2_ans = part2(&input);
-    // println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    // println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 
@@ -24,6 +24,14 @@ fn part1(input: &str) -> u64 {
     let mut solver = Solver::new(grid.clone(), grid_max_i, grid_max_j);
 
     solver.solve((0, 0), (grid_max_i, grid_max_j))
+}
+
+
+fn part2(input: &str) -> u64 {
+    let (grid, grid_max_i, grid_max_j) = parse(input);
+    let mut solver = Solver::new(grid.clone(), grid_max_i, grid_max_j);
+
+    solver.solve2((0, 0), (grid_max_i, grid_max_j))
 }
 
 fn parse(input: &str) -> (HashMap<(i32, i32), u64>, i32, i32) {
@@ -100,6 +108,47 @@ impl Solver {
         unreachable!()
     }
 
+    fn solve2(&mut self, start: (i32, i32), target: (i32, i32)) -> u64 {
+        self.push(start, 0, (0, 0), 0);
+
+        while let Some((score, pos, last_dir, last_dir_count)) = self.next.pop() {
+            let dirs = if last_dir_count >= 4 || last_dir_count == 0 {
+                vec![(0, 1), (0, -1), (1, 0), (-1, 0)]
+            } else {
+                vec![last_dir]
+            };
+
+            let score = -score as u64;
+
+            for dir in dirs {
+                if last_dir == (-dir.0, -dir.1) {
+                    continue;
+                }
+                if dir == last_dir && last_dir_count == 10 {
+                    continue;
+                }
+                let new_pos = (pos.0 + dir.0, pos.1 + dir.1);
+                let (last_dir, last_dir_count) = if dir == last_dir {
+                    (last_dir, last_dir_count + 1)
+                } else {
+                    (dir, 1)
+                };
+
+                match self.grid.get(&new_pos) {
+                    Some(new_score) => {
+                        let new_score = *new_score + score;
+                        self.push2(new_pos, new_score, last_dir, last_dir_count);
+                        if new_pos == target && last_dir_count >= 4 {
+                            return new_score;
+                        }
+                    },
+                    None => {}
+                }
+            }
+        }
+        unreachable!()
+    }
+
     fn push(&mut self, pos: (i32, i32), score: u64, dir: (i32, i32), count: u8) {
         if pos.0 < 0 || pos.1 < 0 || pos.0 > self.grid_max_i || pos.1 > self.grid_max_j {
             return;
@@ -113,5 +162,24 @@ impl Solver {
 
         self.scores.insert((pos, dir), (score, count));
         self.next.push((-(score as i64), pos, dir, count));
+    }
+
+    fn push2(&mut self, pos: (i32, i32), score: u64, dir: (i32, i32), count: u8) {
+        if pos.0 < 0 || pos.1 < 0 || pos.0 > self.grid_max_i || pos.1 > self.grid_max_j {
+            return;
+        }
+
+        if let Some((old_score, old_dir_count)) = self.scores.get(&(pos, dir)) {
+            if count >= *old_dir_count && score >= *old_score {
+                return;
+            }
+        }
+
+        if count >= 4 {
+            self.scores.insert((pos, dir), (score, count));
+            self.next.push((-(score as i64), pos, dir, count));
+        } else {
+            self.next.push((-(score as i64), pos, dir, count));
+        }
     }
 }
