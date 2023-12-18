@@ -12,10 +12,10 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    // let part2_start = Instant::now();
-    // let part2_ans = part2(&input);
-    // println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    // println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 
@@ -25,61 +25,70 @@ fn part1(input: &str) -> usize {
             let mut splitted = line.split(" ");
             let dir = splitted.next().unwrap().chars().next().unwrap();
             let val = splitted.next().unwrap().parse::<u64>().unwrap();
-            let color = splitted.next().unwrap();
-            (dir, val, color)
+            (dir, val)
         })
-        .collect::<Vec<(char, u64, &str)>>();
+        .collect::<Vec<(char, u64)>>();
 
-    let mut grid = HashSet::<(i64, i64)>::new();
+    let trench_lines = draw_trench_lines(instructions);
 
-    let mut pos = (0,0);
-    grid.insert(pos);
+    shoelace(&trench_lines)
+}
 
-    for (dir, val, _) in instructions {
-        for _ in 0..val {
-            let dir = match dir {
-                'R' => (0, 1),
-                'L' => (0, -1),
-                'U' => (1, 0),
-                'D' => (-1, 0),
+
+fn part2(input: &str) -> usize {
+    let instructions = input.split("\n")
+        .map(|line| {
+            let line = line.split(" ").nth(2).unwrap().strip_prefix("(#").unwrap();
+            let val = line.chars().take(5).collect::<String>();
+            let val = u64::from_str_radix(&val, 16).unwrap();
+
+            let dir = match line.chars().nth_back(1).unwrap() {
+                '0' => 'R',
+                '1' => 'D',
+                '2' => 'L',
+                '3' => 'U',
                 _ => unreachable!()
             };
-            pos = (pos.0 + dir.0, pos.1 + dir.1);
-            grid.insert(pos);
-        }
+            (dir, val)
+        })
+        .collect::<Vec<(char, u64)>>();
+
+    let grid = draw_trench_lines(instructions);
+
+    shoelace(&grid)
+}
+
+fn draw_trench_lines(instructions: Vec<(char, u64)>) -> Vec<((i64, i64), (i64, i64))> {
+    let mut grid = Vec::<((i64, i64), (i64, i64))>::new();
+
+    let mut pos = (0, 0);
+
+    for (dir, val) in instructions {
+        let start = pos;
+        let dir = match dir {
+            'R' => (0, 1),
+            'L' => (0, -1),
+            'U' => (1, 0),
+            'D' => (-1, 0),
+            _ => unreachable!()
+        };
+        let end = (pos.0 + dir.0 * val as i64, pos.1 + dir.1 * val as i64);
+        grid.push((start, end));
+        pos = end;
     }
+    grid
+}
 
-    let min_i = *grid.iter().map(|(x, _)| x).min().unwrap()-1;
-    let max_i = *grid.iter().map(|(x, _)| x).max().unwrap()+1;
-    let min_j = *grid.iter().map(|(_, y)| y).min().unwrap()-1;
-    let max_j = *grid.iter().map(|(_, y)| y).max().unwrap()+1;
-
-    let mut outer_boundary = HashSet::<(i64, i64)>::new();
-    let mut queue = Vec::<(i64, i64)>::new();
-    queue.push((min_i-1, min_j-1));
-    while !queue.is_empty() {
-        let (i, j) = queue.pop().unwrap();
-        if outer_boundary.contains(&(i, j)) {
-            continue;
-        }
-        if i < min_i-1 || j < min_j-1 || i >= max_i+1 || j >= max_j+1 {
-            continue
-        }
-        outer_boundary.insert((i, j));
-        if !grid.contains(&(i+1, j)) {
-            queue.push((i+1, j));
-        }
-        if !grid.contains(&(i-1, j)) {
-            queue.push((i-1, j));
-        }
-        if !grid.contains(&(i, j+1)) {
-            queue.push((i, j+1));
-        }
-        if !grid.contains(&(i, j-1)) {
-            queue.push((i, j-1));
-        }
+//function that calculates the area of a simple polygon using shoelace formula
+fn shoelace(grid: &Vec<((i64, i64), (i64, i64))>) -> usize {
+    let mut area = 0.0;
+    for ((x1, y1), (x2, y2)) in grid.iter().rev() {
+        area += (x1 * y2 - x2 * y1) as f64;
     }
-    ((max_i+2-min_i) * (max_j+2-min_j) - outer_boundary.len() as i64) as usize
-
+    let area = (area.abs() / 2.0) as usize;
+    let perimeter = grid.iter().map(|((x1, y1), (x2, y2))| {
+        ((x1 - x2).abs() + (y1 - y2).abs()) as usize
+    }).sum::<usize>();
+    area + perimeter / 2 + 1
 }
 
