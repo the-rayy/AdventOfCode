@@ -19,12 +19,13 @@ fn main() {
 }
 
 
-fn part1(input: &str) -> usize {
+fn part1(input: &str) -> i64 {
     let (rules, parts) = parse(input);
 
     parts.iter()
         .filter(|part| eval(&rules, part))
-        .count()
+        .map(|part| part.x + part.m + part.a + part.s)
+        .sum()
 }
 
 fn parse(input: &str) -> (HashMap<&str, Rules>, Vec<Part>) {
