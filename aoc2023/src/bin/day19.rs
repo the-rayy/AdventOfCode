@@ -219,8 +219,8 @@ impl Rule {
             return (self.target.clone(), Some(part.clone()), None);
         }
 
-        let (p1, p2) = part.foo(self.left, self.operator, self.right);
-        (self.target.clone(), p1, p2)
+        let (p1, p2) = part.split(self.left, self.operator, self.right);
+        (self.target.clone(), Some(p1), Some(p2))
     }
 }
 
@@ -266,95 +266,6 @@ struct PartRange {
 }
 
 impl PartRange {
-
-    //check if the part is in the range
-    fn foo(&self, field: char, operator: char, val: i64) -> (Option<PartRange>, Option<PartRange>) {
-        // match (field, operator) {
-        //     ('x', '>') => {
-        //         if self.x.0 > val && self.x.1 > val {
-        //             (Some(self.clone()), None)
-        //         } else if self.x.0 < val && self.x.1 < val {
-        //             (None, Some(self.clone()))
-        //         } else {
-        //             let (s1, s2) = self.split(field, operator, val);
-        //             (Some(s1), Some(s2))
-        //         }
-        //     },
-        //     ('m', '>') => {
-        //         if self.m.0 > val && self.m.1 > val {
-        //             (Some(self.clone()), None)
-        //         } else if self.m.0 < val && self.m.1 < val {
-        //             (None, Some(self.clone()))
-        //         } else {
-        //             let (s1, s2) = self.split(field, operator, val);
-        //             (Some(s1), Some(s2))
-        //         }
-        //     },
-        //     ('a', '>') => {
-        //         if self.a.0 > val && self.a.1 > val {
-        //             (Some(self.clone()), None)
-        //         } else if self.a.0 < val && self.a.1 < val {
-        //             (None, Some(self.clone()))
-        //         } else {
-        //             let (s1, s2) = self.split(field, operator, val);
-        //             (Some(s1), Some(s2))
-        //         }
-        //     },
-        //     ('s', '>') => {
-        //         if self.s.0 > val && self.s.1 > val {
-        //             (Some(self.clone()), None)
-        //         } else if self.s.0 < val && self.s.1 < val {
-        //             (None, Some(self.clone()))
-        //         } else {
-        //             let (s1, s2) = self.split(field, operator, val);
-        //             (Some(s1), Some(s2))
-        //         }
-        //     },
-        //     ('x', '<') => {
-        //         if self.x.0 < val && self.x.1 < val {
-        //             (Some(self.clone()), None)
-        //         } else if self.x.0 > val && self.x.1 > val {
-        //             (None, Some(self.clone()))
-        //         } else {
-        //             let (s1, s2) = self.split(field, operator, val);
-        //             (Some(s1), Some(s2))
-        //         }
-        //     },
-        //     ('m', '<') => {
-        //         if self.m.0 < val && self.m.1 < val {
-        //             (Some(self.clone()), None)
-        //         } else if self.m.0 > val && self.m.1 > val {
-        //             (None, Some(self.clone()))
-        //         } else {
-        //             let (s1, s2) = self.split(field, operator, val);
-        //             (Some(s1), Some(s2))
-        //         }
-        //     },
-        //     ('a', '<') => {
-        //         if self.a.0 < val && self.a.1 < val {
-        //             (Some(self.clone()), None)
-        //         } else if self.a.0 > val && self.a.1 > val {
-        //             (None, Some(self.clone()))
-        //         } else {
-        //             let (s1, s2) = self.split(field, operator, val);
-        //             (Some(s1), Some(s2))
-        //         }
-        //     },
-        //     ('s', '<') => {
-        //         if self.s.0 < val && self.s.1 < val {
-        //             (Some(self.clone()), None)
-        //         } else if self.s.0 > val && self.s.1 > val {
-        //             (None, Some(self.clone()))
-        //         } else {
-        //             let (s1, s2) = self.split(field, operator, val);
-        //             (Some(s1), Some(s2))
-        //         }
-        //     },
-        //     _ => unreachable!(),
-        // }
-        let (s1, s2) = self.split(field, operator, val);
-        (Some(s1), Some(s2))
-    }
     fn split(&self, field: char, operator: char, val: i64)  -> (PartRange, PartRange) {
         let mut ret1 = self.clone();
         let mut ret2 = self.clone();
