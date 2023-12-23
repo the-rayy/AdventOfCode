@@ -16,15 +16,38 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    // let part2_start = Instant::now();
-    // let part2_ans = part2(&input);
-    // println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    // println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 
 fn part1(input: &str) -> usize {
     let (grid, dims) = parse(input);
+
+    let start = *grid.iter()
+        .filter(|(pos, &c)| c == '.' && pos.0 == 0)
+        .next().unwrap().0;
+
+    let target = *grid.iter()
+        .filter(|(pos, &c)| c == '.' && pos.0 == dims.0)
+        .next().unwrap().0;
+
+    let mut visited = HashSet::new();
+    longest_possible_path(&grid, start, target, visited)
+
+}
+
+
+fn part2(input: &str) -> usize {
+    let (grid, dims) = parse(input);
+
+    let grid = grid.iter()
+        .map(|(pos, &c)| {
+            (*pos, if c == '#' {'#'} else {'.'})
+        })
+        .collect::<HashMap<(isize, isize), char>>();
 
     let start = *grid.iter()
         .filter(|(pos, &c)| c == '.' && pos.0 == 0)
