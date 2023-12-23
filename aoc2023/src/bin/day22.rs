@@ -1,6 +1,8 @@
+use std::cmp::{max, min};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::env::current_exe;
 use std::fs;
+use std::ops::Sub;
 use std::time::Instant;
 use num::integer::lcm;
 use regex::Regex;
@@ -14,10 +16,10 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    // let part2_start = Instant::now();
-    // let part2_ans = part2(&input);
-    // println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    // println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 
@@ -49,7 +51,7 @@ fn part1(input: &str) -> usize {
                     .enumerate()
                     .filter(|(_, x)| x.collides(&dropped) && x.settled)
                     .map(|(j, _)| j)
-                    .collect::<Vec<_>>();
+                    .collect::<HashSet<_>>();
 
                 if supports.len() > 0 {
                     bricks[i].settled = true;
@@ -68,19 +70,88 @@ fn part1(input: &str) -> usize {
 
     bricks.len() - bricks.iter()
         .filter(|b| b.supported_by.len() == 1)
-        .map(|b| b.supported_by[0])
+        .map(|b| b.supported_by.iter().next().unwrap())
         .collect::<HashSet<_>>()
         .len()
 }
 
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+fn part2(input: &str) -> usize {
+    let mut bricks = input.split("\n")
+        .map(|x| Brick::new(x))
+        .collect::<Vec<_>>();
+
+    bricks.sort_by_key(|x| x.z.0);
+
+    loop {
+        for i in 0..bricks.len() {
+            if bricks[i].settled {
+                continue;
+            }
+
+            let other_bricks = bricks.iter()
+                .enumerate()
+                .filter(|(j, _)| *j != i)
+                .map(|(_, x)| x);
+
+            if let Some(dropped) = bricks[i].dropped() {
+                if !other_bricks.clone().any(|x| x.collides(&dropped)) {
+                    bricks[i].drop();
+                    break;
+                }
+
+                let supports = other_bricks.clone()
+                    .enumerate()
+                    .filter(|(_, x)| x.collides(&dropped) && x.settled)
+                    .map(|(j, _)| j)
+                    .collect::<HashSet<_>>();
+
+                if supports.len() > 0 {
+                    bricks[i].settled = true;
+                    supports.iter()
+                        .for_each(|j| bricks[*j].supports.push(i));
+                    bricks[i].supported_by = supports;
+                    break;
+                }
+            }
+        }
+
+        if bricks.iter().all(|x| x.settled) {
+            break;
+        }
+    }
+
+    (0..bricks.len())
+        .map(|x| fall(&bricks, HashSet::from([x])).len() - 1)
+        .sum()
+}
+
+//caching would be nice here, but 1,5s is good enough
+fn fall(bricks: &Vec<Brick>, removed: HashSet<usize>) -> HashSet<usize> {
+    let nxt = bricks.iter()
+        .enumerate()
+        .filter(|(i, x)| !removed.contains(i) && !x.supported_by.is_empty())
+        .filter(|(_, x)| x.supported_by.sub(&removed).len() == 0)
+        .map(|(i, _)| i)
+        .collect::<HashSet<usize>>();
+
+    if nxt.len() == 0 {
+        return removed;
+    }
+
+    let mut removed = removed.clone();
+    removed.extend(nxt.clone());
+    fall(bricks, removed)
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct Brick {
     x: (i64, i64),
     y: (i64, i64),
     z: (i64, i64),
     settled: bool,
-    supported_by: Vec<usize>,
+    supported_by: HashSet<usize>,
+    supports: Vec<usize>,
 }
 
 impl Brick {
@@ -88,12 +159,14 @@ impl Brick {
         let pattern = r"(\d+),(\d+),(\d+)~(\d+),(\d+),(\d+)";
         let re = Regex::new(pattern).unwrap();
         let caps = re.captures(inp).unwrap();
+
         Brick {
-            x: (caps[1].parse().unwrap(), caps[4].parse().unwrap()),
-            y: (caps[2].parse().unwrap(), caps[5].parse().unwrap()),
-            z: (caps[3].parse().unwrap(), caps[6].parse().unwrap()),
+            x: (min(caps[1].parse().unwrap(), caps[4].parse().unwrap()), max(caps[1].parse().unwrap(), caps[4].parse().unwrap())),
+            y: (min(caps[2].parse().unwrap(), caps[5].parse().unwrap()), max(caps[2].parse().unwrap(), caps[5].parse().unwrap())),
+            z: (min(caps[3].parse().unwrap(), caps[6].parse().unwrap()), max(caps[3].parse().unwrap(), caps[6].parse().unwrap())),
             settled: caps[3].parse::<usize>().unwrap() == 1,
-            supported_by: Vec::new(),
+            supported_by: HashSet::new(),
+            supports: Vec::new(),
         }
     }
 
