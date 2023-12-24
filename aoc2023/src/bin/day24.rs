@@ -1,5 +1,5 @@
-use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::fs;
+use std::process::Command;
 use std::time::Instant;
 use itertools::Itertools;
 
@@ -12,10 +12,10 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    // let part2_start = Instant::now();
-    // let part2_ans = part2(&input);
-    // println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    // println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 
@@ -41,6 +41,15 @@ fn part1(input: &str) -> usize {
             && hail2.is_in_future(p.unwrap())
         })
         .count()
+}
+
+fn part2(_: &str) -> usize {
+    let output = Command::new("python3")
+        .args(["src/bin/day24_2.py"])
+        .output()
+        .unwrap();
+
+    String::from_utf8(output.stdout).unwrap().trim().parse::<usize>().unwrap()
 }
 
 fn crossing_point(line1: (f64, f64), line2: (f64, f64)) -> Option<(f64, f64)> {
