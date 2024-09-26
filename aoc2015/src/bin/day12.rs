@@ -28,9 +28,21 @@ fn part1(input: &str) -> i32 {
 }
 
 fn part2(input: &str) -> i32 {
-    input.match_indices(":\"red\"")
-        .for_each(|(ind, _)| {
-        })
+    let deserialized = serde_json::from_str::<serde_json::Value>(input).unwrap();
+    calc(&deserialized)
+}
 
-    0
+fn calc(node: &serde_json::Value) -> i32 {
+    match node {
+        serde_json::Value::Number(n) => n.as_i64().unwrap() as i32,
+        serde_json::Value::Array(arr) => arr.iter().map(|x| calc(x)).sum(),
+        serde_json::Value::Object(obj) => {
+            if obj.values().any(|v| v == "red") {
+                0
+            } else {
+                obj.values().map(|x| calc(x)).sum()
+            }
+        }
+        _ => 0
+    }
 }
