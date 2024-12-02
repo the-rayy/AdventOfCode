@@ -1,7 +1,7 @@
-use hashbrown::HashMap;
-use itertools::Itertools;
 use std::fs;
 use std::time::Instant;
+
+use hashbrown::HashMap;
 
 fn main() {
     let input = fs::read_to_string("data/day01.txt").expect("Unable to load input file");
@@ -40,27 +40,25 @@ fn part1(input: &str) -> u32 {
         .sum::<i32>() as u32
 }
 
- 
-fn part2(input: &str) -> u32 { 
-    let mut right_counts: HashMap<i32, i32> = HashMap::with_capacity(1000); 
-    let mut sum: i32 = 0; 
- 
-    for line in input.lines() { 
-        if line.is_empty() { 
-            continue; 
-        } 
- 
-        let mut parts = line.split_whitespace(); 
-        let left: i32 = parts.next().unwrap().parse().unwrap(); 
-        let right: i32 = parts.next().unwrap().parse().unwrap(); 
- 
-        *right_counts.entry(right).or_insert(0) += 1; 
- 
-        if let Some(count) = right_counts.get(&left) { 
-            sum += count * left; 
-        }; 
-    } 
- 
-    sum as u32 
-}
+fn part2(input: &str) -> u32 {
+    let mut right_counts: HashMap<i32, i32> = HashMap::new();
+    let mut left = Vec::with_capacity(1000);
 
+    for line in input.lines() {
+        if line.is_empty() {
+            continue;
+        }
+
+        let mut split = line.split_whitespace();
+        let l = split.next().unwrap().parse::<i32>().unwrap();
+        let right = split.next().unwrap().parse::<i32>().unwrap();
+
+        *right_counts.entry(right).or_insert(0) += 1;
+
+        left.push(l);        
+    };
+
+    left.iter()
+        .map(|l| right_counts.get(l).unwrap_or(&0) * l)
+        .sum::<i32>() as u32
+}
