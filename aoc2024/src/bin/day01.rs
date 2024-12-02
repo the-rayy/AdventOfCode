@@ -21,11 +21,7 @@ fn part1(input: &str) -> u32 {
     let mut left = Vec::with_capacity(1000);
     let mut right = Vec::with_capacity(1000);
 
-    input.split("\n").for_each(|line| {
-        if line.is_empty() {
-            return;
-        }
-
+    input.lines().for_each(|line| {
         let mut split = line.split(" ");
         left.push(split.next().unwrap().parse::<i32>().unwrap());
         right.push(split.last().unwrap().parse::<i32>().unwrap());
@@ -41,14 +37,10 @@ fn part1(input: &str) -> u32 {
 }
 
 fn part2(input: &str) -> u32 {
-    let mut right_counts: HashMap<i32, i32> = HashMap::new();
+    let mut right_counts: HashMap<i32, i32> = HashMap::with_capacity(1000);
     let mut left = Vec::with_capacity(1000);
 
     for line in input.lines() {
-        if line.is_empty() {
-            continue;
-        }
-
         let mut split = line.split_whitespace();
         let l = split.next().unwrap().parse::<i32>().unwrap();
         let right = split.next().unwrap().parse::<i32>().unwrap();
