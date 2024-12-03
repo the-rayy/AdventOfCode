@@ -1,6 +1,6 @@
+use regex::Regex;
 use std::fs;
 use std::time::Instant;
-use regex::Regex;
 
 use itertools::Itertools;
 
@@ -22,11 +22,14 @@ fn part1(input: &str) -> u32 {
     let pattern = r"mul\((\d\d?\d?),(\d\d?\d?)\)";
     let pattern = Regex::new(pattern).unwrap();
 
-    pattern.captures_iter(input).map(|cap| {
-        let a: u32 = cap[1].parse().unwrap();
-        let b: u32 = cap[2].parse().unwrap();
-        a * b
-    }).sum()
+    pattern
+        .captures_iter(input)
+        .map(|cap| {
+            let a: u32 = cap[1].parse().unwrap();
+            let b: u32 = cap[2].parse().unwrap();
+            a * b
+        })
+        .sum()
 }
 
 fn part2(input: &str) -> u32 {
@@ -52,4 +55,3 @@ fn part2(input: &str) -> u32 {
 
     sum
 }
-

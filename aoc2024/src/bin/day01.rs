@@ -47,8 +47,8 @@ fn part2(input: &str) -> u32 {
 
         *right_counts.entry(right).or_insert(0) += 1;
 
-        left.push(l);        
-    };
+        left.push(l);
+    }
 
     left.iter()
         .map(|l| right_counts.get(l).unwrap_or(&0) * l)
