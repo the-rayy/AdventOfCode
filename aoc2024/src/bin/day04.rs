@@ -11,10 +11,10 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-//    let part2_start = Instant::now();
-//    let part2_ans = part2(&input);
-//   println!("Part 2 time: {:.2?}", part2_start.elapsed());
-//    println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+   println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 fn part1(input: &str) -> u32 {
@@ -43,5 +43,27 @@ fn part1(input: &str) -> u32 {
         });
 
     score
+}
+
+fn part2(input: &str) -> u32 {
+    let crossword: HashMap<(i32, i32), char> = input.lines().enumerate()
+        .map(|(i, line)| {
+            line.chars().enumerate()
+                .map(move |(j, c)| {
+                    ((i as i32, j as i32), c)
+                })
+        }).flatten().collect();
+
+    crossword.iter().filter(|(_, &c)| c == 'A')
+        .filter(|(pos, _)| {
+            let top_left = crossword.get(&(pos.0 - 1, pos.1 - 1)).unwrap_or(&' ');
+            let top_right = crossword.get(&(pos.0 - 1, pos.1 + 1)).unwrap_or(&' ');
+            let bottom_left = crossword.get(&(pos.0 + 1, pos.1 - 1)).unwrap_or(&' ');
+            let bottom_right = crossword.get(&(pos.0 + 1, pos.1 + 1)).unwrap_or(&' ');
+            let v = vec![*top_left, *top_right, *bottom_right, *bottom_left];
+            let allowed = vec![['M', 'S', 'S', 'M'], ['S', 'M', 'M', 'S'], ['S', 'S', 'M', 'M'], ['M', 'M', 'S', 'S']];
+
+            allowed.iter().any(|a| *a == *v)
+        }).count() as u32
 }
 
