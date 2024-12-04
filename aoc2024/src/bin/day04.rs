@@ -1,7 +1,7 @@
 use std::fs;
 use std::time::Instant;
 use hashbrown::HashMap;
-
+use itertools::Itertools;
 
 fn main() {
     let input = fs::read_to_string("data/day04.txt").expect("Unable to load input file");
@@ -30,19 +30,13 @@ fn part1(input: &str) -> u32 {
         (1, 1), (1, -1), (-1, 1), (-1, -1)
     ];
 
-    let mut score = 0;
-    crossword.iter().filter(|(_, &c)| c == 'X')
-        .for_each(|(pos, _)| {
-            for dir in &dirs {
-                if crossword.get(&(pos.0 + dir.0*1, pos.1 + dir.1*1)).unwrap_or(&' ') == &'M' &&
-                   crossword.get(&(pos.0 + dir.0*2, pos.1 + dir.1*2)).unwrap_or(&' ') == &'A' &&
-                   crossword.get(&(pos.0 + dir.0*3, pos.1 + dir.1*3)).unwrap_or(&' ') == &'S' {
-                    score += 1;
-                };
-            }
-        });
-
-    score
+    crossword.iter().filter(|(_, &c)| c == 'X').cartesian_product(dirs.iter())
+        .filter(|((pos, _), dir)| {
+            crossword.get(&(pos.0 + dir.0*1, pos.1 + dir.1*1)).unwrap_or(&' ') == &'M' &&
+            crossword.get(&(pos.0 + dir.0*2, pos.1 + dir.1*2)).unwrap_or(&' ') == &'A' &&
+            crossword.get(&(pos.0 + dir.0*3, pos.1 + dir.1*3)).unwrap_or(&' ') == &'S'  
+            })
+        .count() as u32
 }
 
 fn part2(input: &str) -> u32 {
