@@ -43,10 +43,7 @@ fn part1(input: &str) -> u32 {
                 .collect::<Vec<u32>>();
 
             for rule in &rules {
-                let first = update.iter().position(|&x| x == rule.0);
-                let second = update.iter().position(|&x| x == rule.1);
-
-                if second.is_some() && first.is_some() && second.unwrap() < first.unwrap() {
+                if !validate_rule(*rule, &update) {
                     return None;
                 }
             }
@@ -75,7 +72,7 @@ fn part2(input: &str) -> u32 {
         .unwrap()
         .lines()
         .filter_map(|line| {
-            let mut update = line
+            let update = line
                 .split(",")
                 .map(|part| part.parse::<u32>().unwrap())
                 .collect::<Vec<u32>>();
@@ -90,12 +87,11 @@ fn part2(input: &str) -> u32 {
         })
         .map(|u| {
             let mut u = u;
-            let rules = rules.clone();
-            u.sort_by(move |a, b| {
-                if rules.contains(&(a.clone(), b.clone())) {
+            u.sort_by(|a, b| {
+                if rules.contains(&(*a, *b)) {
                     return Ordering::Less;
                 }
-                if rules.contains(&(b.clone(), a.clone())) {
+                if rules.contains(&(*b, *a)) {
                     return Ordering::Greater;
                 }
                 Ordering::Equal
@@ -115,4 +111,3 @@ fn validate_rule(rule: (u32, u32), update: &Vec<u32>) -> bool {
 
     true
 }
-
