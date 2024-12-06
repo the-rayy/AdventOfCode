@@ -1,7 +1,7 @@
 use std::fs;
 use std::time::Instant;
 
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 
 fn main() {
     let input = fs::read_to_string("data/day06.txt").expect("Unable to load input file");
@@ -77,7 +77,7 @@ fn part2(input: &str) -> u32 {
     let dirs = vec![(-1, 0), (0, 1), (1, 0), (0, -1)];
     let mut dir = 0;
 
-    let mut visited = Vec::with_capacity(1000);
+    let mut visited = HashSet::with_capacity(1000);
     let mut obstacles = Vec::with_capacity(1000);
 
     loop {
@@ -86,14 +86,15 @@ fn part2(input: &str) -> u32 {
         if visited.iter().filter(|(p, _)| p == &next).count() == 0 {
             let mut new_grid = grid.clone();
             new_grid.insert(next, '#');
-            if is_loop(&new_grid, &dirs, dir, pos, visited.clone()) {
+            let mut visited = visited.clone();
+            if is_loop(&new_grid, &dirs, dir, pos, &mut visited) {
                 obstacles.push(next);
             }
         }
 
         match grid.get(&next) {
             Some(&'.') | Some(&'^') => {
-                visited.push((pos, dir));
+                visited.insert((pos, dir));
                 pos = next;
             }
             Some(&'#') => {
@@ -103,7 +104,7 @@ fn part2(input: &str) -> u32 {
                 unreachable!()
             }
             None => {
-                visited.push((pos, dir));
+                visited.insert((pos, dir));
                 break;
             }
         }
@@ -119,11 +120,10 @@ fn is_loop(
     dirs: &Vec<(i32, i32)>,
     dir: usize,
     pos: (i32, i32),
-    visited: Vec<((i32, i32), usize)>,
+    visited: &mut HashSet<((i32, i32), usize)>,
 ) -> bool {
     let mut dir = dir;
     let mut pos = pos;
-    let mut visited = visited.clone();
 
     loop {
         let next = (pos.0 + dirs[dir].0, pos.1 + dirs[dir].1);
@@ -134,7 +134,7 @@ fn is_loop(
 
         match grid.get(&next) {
             Some(&'.') | Some(&'^') => {
-                visited.push((pos, dir));
+                visited.insert((pos, dir));
                 pos = next;
             }
             Some(&'#') => {
