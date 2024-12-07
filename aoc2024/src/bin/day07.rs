@@ -1,8 +1,7 @@
 use itertools::Itertools;
 use std::fs;
 use std::time::Instant;
-
-use hashbrown::HashMap;
+use rayon::prelude::*;
 
 fn main() {
     let input = fs::read_to_string("data/day07.txt").expect("Unable to load input file");
@@ -18,7 +17,7 @@ fn main() {
     println!("Part 2 ans: {:?}", part2_ans);
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 enum Operator {
     Add,
     Multiply,
@@ -26,9 +25,9 @@ enum Operator {
 }
 
 fn part1(input: &str) -> u64 {
-    let available_operations = vec![Operator::Add, Operator::Multiply];
+    let operators = vec![Operator::Multiply, Operator::Add];
     input
-        .lines()
+        .par_lines()
         .filter_map(|line| {
             let numbers = line
                 .replace(":", "")
@@ -39,15 +38,21 @@ fn part1(input: &str) -> u64 {
             let desired = numbers[0];
             let numbers = &numbers[1..];
 
-            eval(desired, numbers, &available_operations)
+            let acc = 0;
+            if eval_recursive(desired, acc, numbers, Operator::Add, &operators) {
+                Some(desired)
+            } else {
+                None
+            }
         })
         .sum::<u64>()
 }
+
 
 fn part2(input: &str) -> u64 {
-    let available_operations = vec![Operator::Add, Operator::Multiply, Operator::Concatenate];
+    let operators = vec![Operator::Concatenate, Operator::Multiply, Operator::Add];
     input
-        .lines()
+        .par_lines()
         .filter_map(|line| {
             let numbers = line
                 .replace(":", "")
@@ -57,49 +62,37 @@ fn part2(input: &str) -> u64 {
 
             let desired = numbers[0];
             let numbers = &numbers[1..];
-            eval(desired, numbers, &available_operations)
+
+            let acc = 0;
+            if eval_recursive(desired, acc, numbers, Operator::Add, &operators) {
+                Some(desired)
+            } else {
+                None
+            }
         })
         .sum::<u64>()
 }
 
-fn eval(target: u64, numbers: &[u64], available_operations: &[Operator]) -> Option<u64> {
-    let operations =
-        itertools::repeat_n(available_operations.iter(), numbers.len()).multi_cartesian_product();
-
-    'outer: for operation in operations {
-        if *operation[0] != Operator::Add {
-            continue;
-        }
-
-        let mut acc = 0;
-        for i in 0..numbers.len() {
-            match operation[i] {
-                Operator::Add => acc += numbers[i],
-                Operator::Multiply => acc *= numbers[i],
-                Operator::Concatenate => {
-                    acc = concatenate_numbers(acc, numbers[i]);
-                }
-            }
-            if acc > target {
-                continue 'outer;
-            }
-        }
-
-        if acc == target {
-            return Some(acc);
-        }
+fn eval_recursive(target: u64, acc: u64, numbers: &[u64], op: Operator, operators: &[Operator]) -> bool {
+    if numbers.is_empty() {
+        return acc == target;
     }
-    None
+
+    if acc > target {
+        return false;
+    }
+
+    let acc = match op {
+        Operator::Add => acc + numbers[0],
+        Operator::Multiply => acc * numbers[0],
+        Operator::Concatenate => concatenate_numbers(acc, numbers[0]),
+    };
+
+    let numbers = &numbers[1..];
+    operators.iter().any(|new_op| eval_recursive(target, acc, numbers, *new_op, operators))
 }
 
 fn concatenate_numbers(a: u64, b: u64) -> u64 {
-    let mut temp_b = b;
-    let mut multiplier = 1;
-
-    while temp_b > 0 {
-        multiplier *= 10;
-        temp_b /= 10;
-    }
-
-    a * multiplier + b
+    let multiplier = b.ilog10() + 1;
+    a * 10_u64.pow(multiplier) + b
 }
