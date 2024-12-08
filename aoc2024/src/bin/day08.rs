@@ -1,6 +1,6 @@
+use itertools::Itertools;
 use std::fs;
 use std::time::Instant;
-use itertools::Itertools;
 
 use hashbrown::{HashMap, HashSet};
 
@@ -30,28 +30,36 @@ fn part1(input: &str) -> u32 {
         .flatten()
         .collect();
 
-    let antennas = grid.iter().filter(|(_, &c)| c != '.').map(|(_, &c)| c).collect::<HashSet<_>>();
+    let antennas = grid
+        .iter()
+        .filter(|(_, &c)| c != '.')
+        .map(|(_, &c)| c)
+        .collect::<HashSet<_>>();
 
     let mut antinodes = HashSet::new();
 
     for ant in antennas {
-        grid.iter().filter(|(_, &c)| c == ant).map(|(pos, _)| pos).combinations(2).for_each(|pair| {
+        grid.iter()
+            .filter(|(_, &c)| c == ant)
+            .map(|(pos, _)| pos)
+            .combinations(2)
+            .for_each(|pair| {
+                let dist = ((pair[1].0 - pair[0].0), (pair[1].1 - pair[0].1));
+                let antinode1 = (pair[0].0 - dist.0, pair[0].1 - dist.1);
+                let antinode2 = (pair[0].0 + 2 * dist.0, pair[0].1 + 2 * dist.1);
 
-            let dist = ((pair[1].0 - pair[0].0), (pair[1].1 - pair[0].1));
-            let antinode1 = (pair[0].0 - dist.0, pair[0].1 - dist.1);
-            let antinode2 = (pair[0].0 + 2*dist.0, pair[0].1 + 2*dist.1);
-
-            antinodes.insert(antinode1);
-            antinodes.insert(antinode2);
-        });
-
-    };
+                antinodes.insert(antinode1);
+                antinodes.insert(antinode2);
+            });
+    }
 
     let max_x = grid.keys().map(|(x, _)| x).max().unwrap();
     let max_y = grid.keys().map(|(_, y)| y).max().unwrap();
 
-    antinodes.iter().filter(|(x, y)| x >= &0 && y >= &0 && x <= max_x && y <= max_y).count() as u32
-
+    antinodes
+        .iter()
+        .filter(|(x, y)| x >= &0 && y >= &0 && x <= max_x && y <= max_y)
+        .count() as u32
 }
 
 fn part2(input: &str) -> u32 {
@@ -72,40 +80,43 @@ fn part2(input: &str) -> u32 {
     let antennas = grid.values().collect::<HashSet<_>>();
 
     let mut antinodes = Vec::with_capacity(1500);
-   
+
     for ant in antennas {
-        grid.iter().filter(|(_, &c)| c == *ant).map(|(pos, _)| pos).combinations(2).for_each(|pair| {
+        grid.iter()
+            .filter(|(_, &c)| c == *ant)
+            .map(|(pos, _)| pos)
+            .combinations(2)
+            .for_each(|pair| {
+                let dist = ((pair[1].0 - pair[0].0), (pair[1].1 - pair[0].1));
 
-            let dist = ((pair[1].0 - pair[0].0), (pair[1].1 - pair[0].1));
+                let mut n = 0;
+                loop {
+                    let antinode = (pair[0].0 - n * dist.0, pair[0].1 - n * dist.1);
 
-            let mut n = 0;
-            loop {
-                let antinode = (pair[0].0 - n*dist.0, pair[0].1 - n*dist.1);
+                    if antinode.0 < 0 || antinode.1 < 0 || antinode.0 > max_x || antinode.1 > max_y
+                    {
+                        break;
+                    }
 
-                if antinode.0 < 0 || antinode.1 < 0 || antinode.0 > max_x || antinode.1 > max_y {
-                    break;
+                    antinodes.push(antinode);
+                    n += 1;
                 }
 
-                antinodes.push(antinode);
-                n += 1;
-            }
+                let mut n = 0;
+                loop {
+                    let antinode = (pair[0].0 + n * dist.0, pair[0].1 + n * dist.1);
 
-            let mut n = 0;
-            loop {
-                let antinode = (pair[0].0 + n*dist.0, pair[0].1 + n*dist.1);
+                    if antinode.0 < 0 || antinode.1 < 0 || antinode.0 > max_x || antinode.1 > max_y
+                    {
+                        break;
+                    }
 
-                if antinode.0 < 0 || antinode.1 < 0 || antinode.0 > max_x || antinode.1 > max_y {
-                    break;
+                    antinodes.push(antinode);
+                    n += 1;
                 }
-
-                antinodes.push(antinode);
-                n += 1;
-            }
-        });
-
-    };
+            });
+    }
 
     let antinodes = antinodes.iter().collect::<HashSet<_>>();
     antinodes.len() as u32
 }
-

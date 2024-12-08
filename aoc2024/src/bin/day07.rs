@@ -1,6 +1,6 @@
+use rayon::prelude::*;
 use std::fs;
 use std::time::Instant;
-use rayon::prelude::*;
 
 fn main() {
     let input = fs::read_to_string("data/day07.txt").expect("Unable to load input file");
@@ -47,7 +47,6 @@ fn part1(input: &str) -> u64 {
         .sum::<u64>()
 }
 
-
 fn part2(input: &str) -> u64 {
     let operators = vec![Operator::Concatenate, Operator::Multiply, Operator::Add];
     input
@@ -72,7 +71,13 @@ fn part2(input: &str) -> u64 {
         .sum::<u64>()
 }
 
-fn eval_recursive(target: u64, acc: u64, numbers: &[u64], op: Operator, operators: &[Operator]) -> bool {
+fn eval_recursive(
+    target: u64,
+    acc: u64,
+    numbers: &[u64],
+    op: Operator,
+    operators: &[Operator],
+) -> bool {
     if numbers.is_empty() {
         return acc == target;
     }
@@ -88,7 +93,9 @@ fn eval_recursive(target: u64, acc: u64, numbers: &[u64], op: Operator, operator
     };
 
     let numbers = &numbers[1..];
-    operators.iter().any(|new_op| eval_recursive(target, acc, numbers, *new_op, operators))
+    operators
+        .iter()
+        .any(|new_op| eval_recursive(target, acc, numbers, *new_op, operators))
 }
 
 fn concatenate_numbers(a: u64, b: u64) -> u64 {
