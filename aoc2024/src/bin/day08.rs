@@ -55,6 +55,8 @@ fn part1(input: &str) -> u32 {
 }
 
 fn part2(input: &str) -> u32 {
+    let max_x = input.lines().count() as i32 - 1;
+    let max_y = input.lines().next().unwrap().len() as i32 - 1;
     let grid: HashMap<(i32, i32), char> = input
         .lines()
         .enumerate()
@@ -64,17 +66,15 @@ fn part2(input: &str) -> u32 {
                 .map(move |(j, c)| ((i as i32, j as i32), c))
         })
         .flatten()
+        .filter(|(_, c)| *c != '.')
         .collect();
 
-    let antennas = grid.iter().filter(|(_, &c)| c != '.').map(|(_, &c)| c).collect::<HashSet<_>>();
+    let antennas = grid.values().collect::<HashSet<_>>();
 
-    let mut antinodes = HashSet::new();
-    
-    let max_x = *grid.keys().map(|(x, _)| x).max().unwrap();
-    let max_y = *grid.keys().map(|(_, y)| y).max().unwrap();
-
+    let mut antinodes = Vec::with_capacity(1500);
+   
     for ant in antennas {
-        grid.iter().filter(|(_, &c)| c == ant).map(|(pos, _)| pos).combinations(2).for_each(|pair| {
+        grid.iter().filter(|(_, &c)| c == *ant).map(|(pos, _)| pos).combinations(2).for_each(|pair| {
 
             let dist = ((pair[1].0 - pair[0].0), (pair[1].1 - pair[0].1));
 
@@ -86,7 +86,7 @@ fn part2(input: &str) -> u32 {
                     break;
                 }
 
-                antinodes.insert(antinode);
+                antinodes.push(antinode);
                 n += 1;
             }
 
@@ -98,14 +98,14 @@ fn part2(input: &str) -> u32 {
                     break;
                 }
 
-                antinodes.insert(antinode);
+                antinodes.push(antinode);
                 n += 1;
             }
         });
 
     };
 
-       antinodes.len() as u32
-
+    let antinodes = antinodes.iter().collect::<HashSet<_>>();
+    antinodes.len() as u32
 }
 
