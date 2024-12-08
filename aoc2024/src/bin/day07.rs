@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use std::fs;
 use std::time::Instant;
 use rayon::prelude::*;
