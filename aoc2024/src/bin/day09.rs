@@ -125,8 +125,12 @@ fn part2(input: &str) -> u64 {
 
                 files[fid] =
                     Cluster::new(freespace_cluster.start, freespace_cluster.start + file.size);
-                freespace[space_id] =
-                    Cluster::new(freespace_cluster.start + file.size, freespace_cluster.end);
+                if file.size == freespace_cluster.size {
+                    freespace.remove(space_id);
+                } else {
+                    freespace[space_id] =
+                        Cluster::new(freespace_cluster.start + file.size, freespace_cluster.end);
+                }
             }
             None => {}
         }
