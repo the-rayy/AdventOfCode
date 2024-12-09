@@ -74,6 +74,23 @@ fn part1(input: &str) -> u64 {
         .sum()
 }
 
+#[derive(Debug, Copy, Clone)]
+struct Cluster {
+    start: u32,
+    end: u32,
+    size: u32,
+}
+
+impl Cluster {
+    fn new(start: u32, end: u32) -> Self {
+        Self {
+            start,
+            end,
+            size: end - start,
+        }
+    }
+}
+
 fn part2(input: &str) -> u64 {
     let mut files = Vec::with_capacity(100_000);
     let mut freespace = Vec::with_capacity(100_000);
@@ -87,9 +104,9 @@ fn part2(input: &str) -> u64 {
         let c = c.to_digit(10).unwrap();
 
         if pos % 2 == 0 {
-            files.push((current_block, current_block + c));
+            files.push(Cluster::new(current_block, current_block + c));
         } else {
-            freespace.push((current_block, current_block + c));
+            freespace.push(Cluster::new(current_block, current_block + c));
         }
 
         current_block += c;
@@ -97,18 +114,19 @@ fn part2(input: &str) -> u64 {
 
     let max_fid = files.len();
     for fid in (0..max_fid).rev() {
-        let file = &files[fid];
+        let file = files[fid];
         let sid = freespace
             .iter()
-            .position(|(start, end)| end - start >= file.1 - file.0 && *start <= file.0);
+            .position(|cluster| cluster.start <= file.start && cluster.size >= file.size);
 
         match sid {
             Some(space_id) => {
-                let (s_start, s_end) = freespace[space_id];
-                let (f_start, f_end) = files[fid];
+                let freespace_cluster = &freespace[space_id];
 
-                files[fid] = (s_start, s_start + f_end - f_start);
-                freespace[space_id] = (s_start + f_end - f_start, s_end);
+                files[fid] =
+                    Cluster::new(freespace_cluster.start, freespace_cluster.start + file.size);
+                freespace[space_id] =
+                    Cluster::new(freespace_cluster.start + file.size, freespace_cluster.end);
             }
             None => {}
         }
@@ -117,8 +135,8 @@ fn part2(input: &str) -> u64 {
     files
         .iter()
         .enumerate()
-        .map(|(fid, (start, end))| {
-            (*start..*end)
+        .map(|(fid, cluster)| {
+            (cluster.start..cluster.end)
                 .map(|pos| pos as u64 * fid as u64)
                 .sum::<u64>()
         })
