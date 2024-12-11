@@ -31,13 +31,13 @@ fn part1(input: &str) -> u32 {
 
     grid.iter()
         .filter(|(_, c)| **c == 0)
-        .map(|(pos, c)| score(&grid, *pos, *c).iter().collect::<HashSet<_>>().len() as u32)
+        .map(|(pos, c)| score(&grid, *pos, *c).len() as u32)
         .sum()
 }
 
-fn score(grid: &HashMap<(i32, i32), u32>, pos: (i32, i32), c: u32) -> Vec<(i32, i32)> {
+fn score(grid: &HashMap<(i32, i32), u32>, pos: (i32, i32), c: u32) -> HashSet<(i32, i32)> {
     if c == 9 {
-        return vec![pos];
+        return HashSet::from([pos]);
     }
 
     let dirs = vec![(1, 0), (0, 1), (-1, 0), (0, -1)];
@@ -49,10 +49,10 @@ fn score(grid: &HashMap<(i32, i32), u32>, pos: (i32, i32), c: u32) -> Vec<(i32, 
                 if new_c == c + 1 {
                     score(grid, new_pos, new_c)
                 } else {
-                    vec![]
+                    HashSet::new()
                 }
             } else {
-                vec![]
+                HashSet::new()
             }
         })
         .flatten()
