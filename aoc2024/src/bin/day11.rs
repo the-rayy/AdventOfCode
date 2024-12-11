@@ -65,15 +65,17 @@ fn blink(num: u64, times: u32, cache: &mut HashMap<(u64, u32), u64>) -> u64 {
     return b;
 }
 
-fn split_in_half_if_even_length(num: u64) -> Option<(u64, u64)> {
-    let num_str = num.to_string();
-    let len = num_str.len();
-    if len % 2 == 0 {
-        let half = len / 2;
-        let (left, right) = num_str.split_at(half);
-        Some((left.parse::<u64>().unwrap(), right.parse::<u64>().unwrap()))
-    } else {
-        None
-    }
-}
-
+fn split_in_half_if_even_length(num: u64) -> Option<(u64, u64)> { 
+    let num_digits = (num as f64).log10().floor() as u32 + 1; //added +1 as log10(1000)=3 but has 4 digits 
+    if num_digits % 2 == 0 { 
+        let half_digits = num_digits / 2; 
+        let divisor = 10u64.pow(half_digits); 
+        let left = num / divisor; 
+        let right = num % divisor; 
+ 
+        Some((left, right)) 
+ 
+    } else { 
+        None 
+    } 
+} 
