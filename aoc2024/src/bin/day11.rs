@@ -11,33 +11,58 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    //let part2_start = Instant::now();
-    //let part2_ans = part2(&input);
-    //println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    //println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 fn part1(input: &str) -> u64 {
+    let mut cache = HashMap::with_capacity(100_000);
+
     input.split_whitespace().map(|num| {
         let num = num.parse::<u64>().unwrap();
-        blink(num, 25)
+        blink(num, 25, &mut cache)
     }).sum()
 }
 
-fn blink(num: u64, times: u32) -> u64 {
+fn part2(input: &str) -> u64 {
+    let mut cache = HashMap::with_capacity(100_000);
+
+    input.split_whitespace().map(|num| {
+        let num = num.parse::<u64>().unwrap();
+        blink(num, 75, &mut cache)
+    }).sum()
+}
+
+fn blink(num: u64, times: u32, cache: &mut HashMap<(u64, u32), u64>) -> u64 {
     if times == 0 {
         return 1
     }
 
+    if let Some(&x) = cache.get(&(num, times)) {
+        return x;
+    }
+
     if num == 0 {
-        return blink(1, times - 1);
+        let b = blink(1, times - 1, cache);
+        cache.insert((1, times - 1), b);
+        return b;
     }
 
     if let Some(x) = split_in_half_if_even_length(num) {
-        return blink(x.0, times - 1) + blink(x.1, times - 1);
+        let b1 = blink(x.0, times - 1, cache);
+        let b2 = blink(x.1, times - 1, cache);
+
+        cache.insert((x.0, times - 1), b1);
+        cache.insert((x.1, times - 1), b2);
+
+        return b1 + b2;
     }
 
-    return blink(num * 2024, times - 1);
+    let b = blink(num * 2024, times - 1, cache);
+    cache.insert((num * 2024, times - 1), b);
+    return b;
 }
 
 fn split_in_half_if_even_length(num: u64) -> Option<(u64, u64)> {
