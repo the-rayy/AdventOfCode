@@ -39,7 +39,7 @@ fn part1(input: &str) -> u32 {
         let start = start.unwrap();
 
         let region = flood_fill(&grid, *start.0, *start.1);
-        let score = calculate_score(&grid, &region, *start.1);
+        let score = calculate_score(&region);
         total_score += score;
 
         for pos in region {
@@ -72,7 +72,7 @@ fn part2(input: &str) -> u32 {
         let start = start.unwrap();
 
         let region = flood_fill(&grid, *start.0, *start.1);
-        let score = calculate_score2(&grid, &region, *start.1);
+        let score = calculate_score2(&region);
         total_score += score;
 
         for pos in region {
@@ -107,7 +107,7 @@ fn flood_fill(grid: &HashMap<(i32, i32), char>, pos: (i32, i32), c: char) -> Has
     region
 }
 
-fn calculate_score(grid: &HashMap<(i32, i32), char>, region: &HashSet<(i32, i32)>, c: char) -> u32 {
+fn calculate_score(region: &HashSet<(i32, i32)>) -> u32 {
     let dirs = vec![(1, 0), (0, 1), (-1, 0), (0, -1)];
 
     let perimeter = region
@@ -117,11 +117,7 @@ fn calculate_score(grid: &HashMap<(i32, i32), char>, region: &HashSet<(i32, i32)
                 .iter()
                 .filter(|dir| {
                     let new_pos = (pos.0 + dir.0, pos.1 + dir.1);
-                    if let Some(&new_c) = grid.get(&new_pos) {
-                        new_c == c
-                    } else {
-                        false
-                    }
+                    region.contains(&new_pos)
                 })
                 .count() as u32
         })
@@ -130,67 +126,66 @@ fn calculate_score(grid: &HashMap<(i32, i32), char>, region: &HashSet<(i32, i32)
     perimeter * region.len() as u32
 }
 
-fn calculate_score2(
-    grid: &HashMap<(i32, i32), char>,
-    region: &HashSet<(i32, i32)>,
-    c: char,
-) -> u32 {
-    let vertices = region.iter().map(|pos| {
-        let top_left = region.contains(&(pos.0 - 1, pos.1 - 1));
-        let top = region.contains(&(pos.0 - 1, pos.1));
-        let top_right = region.contains(&(pos.0 - 1, pos.1 + 1));
-        let left = region.contains(&(pos.0, pos.1 - 1));
-        let right = region.contains(&(pos.0, pos.1 + 1));
-        let bottom_right = region.contains(&(pos.0 + 1, pos.1 + 1));
-        let bottom = region.contains(&(pos.0 + 1, pos.1));
-        let bottom_left = region.contains(&(pos.0 + 1, pos.1 - 1));
+fn calculate_score2(region: &HashSet<(i32, i32)>) -> u32 {
+    let vertices = region
+        .iter()
+        .map(|pos| {
+            let top_left = region.contains(&(pos.0 - 1, pos.1 - 1));
+            let top = region.contains(&(pos.0 - 1, pos.1));
+            let top_right = region.contains(&(pos.0 - 1, pos.1 + 1));
+            let left = region.contains(&(pos.0, pos.1 - 1));
+            let right = region.contains(&(pos.0, pos.1 + 1));
+            let bottom_right = region.contains(&(pos.0 + 1, pos.1 + 1));
+            let bottom = region.contains(&(pos.0 + 1, pos.1));
+            let bottom_left = region.contains(&(pos.0 + 1, pos.1 - 1));
 
-        let mut vertices = 0;
+            let mut vertices = 0;
 
-        //outer vertices
-        if !left && !top_left && !top {
-            vertices += 1;
-        };
-        if !top && !top_right && !right {
-            vertices += 1;
-        };
-        if !right && !bottom_right && !bottom {
-            vertices += 1;
-        };
-        if !bottom && !bottom_left && !left {
-            vertices += 1;
-        };
+            //outer vertices
+            if !left && !top_left && !top {
+                vertices += 1;
+            };
+            if !top && !top_right && !right {
+                vertices += 1;
+            };
+            if !right && !bottom_right && !bottom {
+                vertices += 1;
+            };
+            if !bottom && !bottom_left && !left {
+                vertices += 1;
+            };
 
-        //inner vertices
-        if left && !top_left && top {
-            vertices += 1;
-        };
-        if top && !top_right && right {
-            vertices += 1;
-        };
-        if right && !bottom_right && bottom {
-            vertices += 1;
-        };
-        if bottom && !bottom_left && left {
-            vertices += 1;
-        };
+            //inner vertices
+            if left && !top_left && top {
+                vertices += 1;
+            };
+            if top && !top_right && right {
+                vertices += 1;
+            };
+            if right && !bottom_right && bottom {
+                vertices += 1;
+            };
+            if bottom && !bottom_left && left {
+                vertices += 1;
+            };
 
-        //inner, but joining
-        if !left && top_left && !top {
-            vertices += 1;
-        };
-        if !top && top_right && !right {
-            vertices += 1;
-        };
-        if !right && bottom_right && !bottom {
-            vertices += 1;
-        };
-        if !bottom && bottom_left && !left {
-            vertices += 1;
-        };
+            //inner, but joining
+            if !left && top_left && !top {
+                vertices += 1;
+            };
+            if !top && top_right && !right {
+                vertices += 1;
+            };
+            if !right && bottom_right && !bottom {
+                vertices += 1;
+            };
+            if !bottom && bottom_left && !left {
+                vertices += 1;
+            };
 
-        vertices
-    }).sum::<u32>();
+            vertices
+        })
+        .sum::<u32>();
 
     vertices * region.len() as u32
 }
