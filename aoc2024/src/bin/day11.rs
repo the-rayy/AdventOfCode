@@ -20,24 +20,30 @@ fn main() {
 fn part1(input: &str) -> u64 {
     let mut cache = HashMap::with_capacity(100_000);
 
-    input.split_whitespace().map(|num| {
-        let num = num.parse::<u64>().unwrap();
-        blink(num, 25, &mut cache)
-    }).sum()
+    input
+        .split_whitespace()
+        .map(|num| {
+            let num = num.parse::<u64>().unwrap();
+            blink(num, 25, &mut cache)
+        })
+        .sum()
 }
 
 fn part2(input: &str) -> u64 {
     let mut cache = HashMap::with_capacity(100_000);
 
-    input.split_whitespace().map(|num| {
-        let num = num.parse::<u64>().unwrap();
-        blink(num, 75, &mut cache)
-    }).sum()
+    input
+        .split_whitespace()
+        .map(|num| {
+            let num = num.parse::<u64>().unwrap();
+            blink(num, 75, &mut cache)
+        })
+        .sum()
 }
 
 fn blink(num: u64, times: u32, cache: &mut HashMap<(u64, u32), u64>) -> u64 {
     if times == 0 {
-        return 1
+        return 1;
     }
 
     if let Some(&x) = cache.get(&(num, times)) {
@@ -65,17 +71,16 @@ fn blink(num: u64, times: u32, cache: &mut HashMap<(u64, u32), u64>) -> u64 {
     return b;
 }
 
-fn split_in_half_if_even_length(num: u64) -> Option<(u64, u64)> { 
-    let num_digits = (num as f64).log10().floor() as u32 + 1; //added +1 as log10(1000)=3 but has 4 digits 
-    if num_digits % 2 == 0 { 
-        let half_digits = num_digits / 2; 
-        let divisor = 10u64.pow(half_digits); 
-        let left = num / divisor; 
-        let right = num % divisor; 
- 
-        Some((left, right)) 
- 
-    } else { 
-        None 
-    } 
-} 
+fn split_in_half_if_even_length(num: u64) -> Option<(u64, u64)> {
+    let num_digits = (num as f64).log10().floor() as u32 + 1; //added +1 as log10(1000)=3 but has 4 digits
+    if num_digits % 2 == 0 {
+        let half_digits = num_digits / 2;
+        let divisor = 10u64.pow(half_digits);
+        let left = num / divisor;
+        let right = num % divisor;
+
+        Some((left, right))
+    } else {
+        None
+    }
+}
