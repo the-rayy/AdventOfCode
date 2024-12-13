@@ -16,7 +16,8 @@ fn main() {
 }
 
 fn part1(input: &str) -> i64 {
-    let pattern = r"Button A: X\+(\d+), Y\+(\d+)\nButton B: X\+(\d+), Y\+(\d+)\nPrize: X=(\d+), Y=(\d+)";
+    let pattern =
+        r"Button A: X\+(\d+), Y\+(\d+)\nButton B: X\+(\d+), Y\+(\d+)\nPrize: X=(\d+), Y=(\d+)";
     let pattern = regex::Regex::new(pattern).unwrap();
 
     pattern
@@ -28,12 +29,12 @@ fn part1(input: &str) -> i64 {
             let by: i64 = cap[4].parse().unwrap();
             let px: i64 = cap[5].parse().unwrap();
             let py: i64 = cap[6].parse().unwrap();
-            
-            let b = (py*ax - px*ay) / (by*ax - bx*ay);
-            let a = (px - b*bx) / ax;
 
-            if a*ax + b*bx == px && a*ay + b*by == py {
-                Some(3*a + b)
+            let b = (py * ax - px * ay) / (by * ax - bx * ay);
+            let a = (px - b * bx) / ax;
+
+            if a * ax + b * bx == px && a * ay + b * by == py {
+                Some(3 * a + b)
             } else {
                 None
             }
@@ -42,7 +43,8 @@ fn part1(input: &str) -> i64 {
 }
 
 fn part2(input: &str) -> i64 {
-    let pattern = r"Button A: X\+(\d+), Y\+(\d+)\nButton B: X\+(\d+), Y\+(\d+)\nPrize: X=(\d+), Y=(\d+)";
+    let pattern =
+        r"Button A: X\+(\d+), Y\+(\d+)\nButton B: X\+(\d+), Y\+(\d+)\nPrize: X=(\d+), Y=(\d+)";
     let pattern = regex::Regex::new(pattern).unwrap();
 
     pattern
@@ -54,12 +56,12 @@ fn part2(input: &str) -> i64 {
             let by: i64 = cap[4].parse().unwrap();
             let px: i64 = cap[5].parse::<i64>().unwrap() + 10000000000000;
             let py: i64 = cap[6].parse::<i64>().unwrap() + 10000000000000;
-            
-            let b = (py*ax - px*ay) / (by*ax - bx*ay);
-            let a = (px - b*bx) / ax;
 
-            if a*ax + b*bx == px && a*ay + b*by == py {
-                Some(3*a + b)
+            let b = (py * ax - px * ay) / (by * ax - bx * ay);
+            let a = (px - b * bx) / ax;
+
+            if a * ax + b * bx == px && a * ay + b * by == py {
+                Some(3 * a + b)
             } else {
                 None
             }
