@@ -1,5 +1,5 @@
-use std::{collections::VecDeque, fs};
 use std::time::Instant;
+use std::{collections::VecDeque, fs};
 
 use hashbrown::{HashMap, HashSet};
 
@@ -44,30 +44,40 @@ fn part1(input: &str) -> u32 {
         //forward
         let new_pos = (pos.0 + dirs[dir].0, pos.1 + dirs[dir].1);
         if let Some(x) = grid.get(&new_pos) {
-            if *x != '#' && (visited.get(&(new_pos, dir)).is_none() || score + 1 < *visited.get(&(new_pos, dir)).unwrap()) {
+            if *x != '#'
+                && (visited.get(&(new_pos, dir)).is_none()
+                    || score + 1 < *visited.get(&(new_pos, dir)).unwrap())
+            {
                 visited.insert((new_pos, dir), score + 1);
                 queue.push_back((new_pos, dir, score + 1));
-
             }
         }
 
         //left
         let new_dir = (dir - 1).rem_euclid(4);
-        if visited.get(&(pos, new_dir)).is_none() || score + 1000 < *visited.get(&(pos, new_dir)).unwrap() {
+        if visited.get(&(pos, new_dir)).is_none()
+            || score + 1000 < *visited.get(&(pos, new_dir)).unwrap()
+        {
             visited.insert((pos, new_dir), score + 1000);
             queue.push_back((pos, new_dir, score + 1000));
         }
 
         //right
         let new_dir = (dir + 1).rem_euclid(4);
-        if visited.get(&(pos, new_dir)).is_none() || score + 1000 < *visited.get(&(pos, new_dir)).unwrap() {
+        if visited.get(&(pos, new_dir)).is_none()
+            || score + 1000 < *visited.get(&(pos, new_dir)).unwrap()
+        {
             visited.insert((pos, new_dir), score + 1000);
             queue.push_back((pos, new_dir, score + 1000));
         }
+    }
 
-    };
-
-    visited.iter().filter(|((pos, _), _)| *pos == end).map(|(_, score)| *score).min().unwrap()
+    visited
+        .iter()
+        .filter(|((pos, _), _)| *pos == end)
+        .map(|(_, score)| *score)
+        .min()
+        .unwrap()
 }
 
 fn part2(input: &str, shortest_path_score: u32) -> u32 {
@@ -107,32 +117,36 @@ fn part2(input: &str, shortest_path_score: u32) -> u32 {
         //forward
         let new_pos = (pos.0 + dirs[dir].0, pos.1 + dirs[dir].1);
         if let Some(x) = grid.get(&new_pos) {
-            if *x != '#' && !path.contains(&new_pos) && (visited.get(&(new_pos, dir)).is_none() || score + 1 <= *visited.get(&(new_pos, dir)).unwrap()) {
+            if *x != '#'
+                && (visited.get(&(new_pos, dir)).is_none()
+                    || score + 1 <= *visited.get(&(new_pos, dir)).unwrap())
+            {
                 let mut path = path.clone();
                 path.push(new_pos);
 
                 visited.insert((new_pos, dir), score + 1);
                 queue.push_back((new_pos, dir, score + 1, path));
-
             }
         }
 
         //left
         let new_dir = (dir - 1).rem_euclid(4);
-        if visited.get(&(pos, new_dir)).is_none() || score + 1000 <= *visited.get(&(pos, new_dir, )).unwrap() {
+        if visited.get(&(pos, new_dir)).is_none()
+            || score + 1000 <= *visited.get(&(pos, new_dir)).unwrap()
+        {
             visited.insert((pos, new_dir), score + 1000);
             queue.push_back((pos, new_dir, score + 1000, path.clone()));
         }
 
         //right
         let new_dir = (dir + 1).rem_euclid(4);
-        if visited.get(&(pos, new_dir)).is_none() || score + 1000 <= *visited.get(&(pos, new_dir)).unwrap() {
+        if visited.get(&(pos, new_dir)).is_none()
+            || score + 1000 <= *visited.get(&(pos, new_dir)).unwrap()
+        {
             visited.insert((pos, new_dir), score + 1000);
             queue.push_back((pos, new_dir, score + 1000, path.clone()));
         }
+    }
 
-    };
-
-    places.len() as u32   
+    places.len() as u32
 }
-
