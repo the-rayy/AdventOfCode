@@ -26,23 +26,32 @@ fn part1(input: &str) -> String {
         match s.next().unwrap() {
             "Register A" => {
                 cpu.register_a = s.next().unwrap().parse::<u64>().unwrap();
-            },
+            }
             "Register B" => {
                 cpu.register_b = s.next().unwrap().parse::<u64>().unwrap();
-            },
+            }
             "Register C" => {
                 cpu.register_c = s.next().unwrap().parse::<u64>().unwrap();
-            },
+            }
             "Program" => {
-                cpu.program = s.next().unwrap().split(",").map(|c| c.parse::<u32>().unwrap()).collect::<Vec<u32>>();
-            },
+                cpu.program = s
+                    .next()
+                    .unwrap()
+                    .split(",")
+                    .map(|c| c.parse::<u32>().unwrap())
+                    .collect::<Vec<u32>>();
+            }
             "" => (),
             _ => unreachable!(),
         }
     }
 
     cpu.run();
-    cpu.output.iter().map(|c| c.to_string()).collect::<Vec<String>>().join(",")
+    cpu.output
+        .iter()
+        .map(|c| c.to_string())
+        .collect::<Vec<String>>()
+        .join(",")
 }
 
 fn part2(input: &str) -> u64 {
@@ -53,16 +62,21 @@ fn part2(input: &str) -> u64 {
         match s.next().unwrap() {
             "Register A" => {
                 cpu.register_a = s.next().unwrap().parse::<u64>().unwrap();
-            },
+            }
             "Register B" => {
                 cpu.register_b = s.next().unwrap().parse::<u64>().unwrap();
-            },
+            }
             "Register C" => {
                 cpu.register_c = s.next().unwrap().parse::<u64>().unwrap();
-            },
+            }
             "Program" => {
-                cpu.program = s.next().unwrap().split(",").map(|c| c.parse::<u32>().unwrap()).collect::<Vec<u32>>();
-            },
+                cpu.program = s
+                    .next()
+                    .unwrap()
+                    .split(",")
+                    .map(|c| c.parse::<u32>().unwrap())
+                    .collect::<Vec<u32>>();
+            }
             "" => (),
             _ => unreachable!(),
         }
@@ -89,7 +103,7 @@ fn part2(input: &str) -> u64 {
             result.pop();
             continue;
         }
-    
+
         result.pop();
         d = result.pop().unwrap() + 1;
         i -= 1;
@@ -107,7 +121,7 @@ fn digits_to_reg(digits: &[u32]) -> u64 {
 }
 
 fn partial_match(output: &[u32], program: &[u32]) -> bool {
-    let program_tail = &program[program.len()-output.len()..];
+    let program_tail = &program[program.len() - output.len()..];
 
     output == program_tail
 }
@@ -142,43 +156,50 @@ impl Cpu {
 
     fn tick(&mut self, opcode: u32, operand: u32) {
         match opcode {
-            0 => { //adv
+            0 => {
+                //adv
                 self.register_a = self.register_a / 2_u64.pow(self.combo(operand) as u32);
                 self.pointer += 2;
-            },
-            1 => { //bxl
+            }
+            1 => {
+                //bxl
                 self.register_b = self.register_b.bitxor(operand as u64);
                 self.pointer += 2;
-            },
-            2 => { //bst
-                self.register_b =  self.combo(operand) % 8;
+            }
+            2 => {
+                //bst
+                self.register_b = self.combo(operand) % 8;
                 self.pointer += 2;
-            },
-            3 => { //jnz
+            }
+            3 => {
+                //jnz
                 if self.register_a != 0 {
                     self.pointer = operand;
                 } else {
                     self.pointer += 2;
                 }
-            },
-            4 => { //bxc
+            }
+            4 => {
+                //bxc
                 self.register_b = self.register_b.bitxor(self.register_c);
                 self.pointer += 2;
-            },
-            5 => { //out
+            }
+            5 => {
+                //out
                 self.output.push((self.combo(operand) % 8) as u32);
                 self.pointer += 2;
-            },
-            6 => { //bdv
+            }
+            6 => {
+                //bdv
                 self.register_b = self.register_a / 2_u64.pow(self.combo(operand) as u32);
                 self.pointer += 2;
-            },
-            7 => { //cdv
+            }
+            7 => {
+                //cdv
                 self.register_c = self.register_a / 2_u64.pow(self.combo(operand) as u32);
                 self.pointer += 2;
             }
             _ => unreachable!(),
-
         }
     }
 
