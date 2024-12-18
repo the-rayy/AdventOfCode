@@ -1,5 +1,5 @@
-use std::{collections::VecDeque, fs};
 use std::time::Instant;
+use std::{collections::VecDeque, fs};
 
 use hashbrown::{HashMap, HashSet};
 
@@ -23,11 +23,20 @@ fn part1(input: &str) -> u32 {
     let end = (70, 70);
     let num_obstacles = 1024;
 
-    let obstacles = input.lines().enumerate().filter_map(|(i, l)| {
-        if i >= num_obstacles { return None; }
-        let mut s = l.split(",");
-        Some((s.next().unwrap().parse::<u32>().unwrap(), s.next().unwrap().parse::<u32>().unwrap()))
-    }).collect::<HashSet<_>>();
+    let obstacles = input
+        .lines()
+        .enumerate()
+        .filter_map(|(i, l)| {
+            if i >= num_obstacles {
+                return None;
+            }
+            let mut s = l.split(",");
+            Some((
+                s.next().unwrap().parse::<u32>().unwrap(),
+                s.next().unwrap().parse::<u32>().unwrap(),
+            ))
+        })
+        .collect::<HashSet<_>>();
 
     pathfinding(dims, start, end, &obstacles).unwrap()
 }
@@ -37,10 +46,16 @@ fn part2(input: &str) -> String {
     let start = (0, 0);
     let end = (70, 70);
 
-    let obstacles = input.lines().map(|l| {
-        let mut s = l.split(",");
-        (s.next().unwrap().parse::<u32>().unwrap(), s.next().unwrap().parse::<u32>().unwrap())
-    }).collect::<Vec<_>>();
+    let obstacles = input
+        .lines()
+        .map(|l| {
+            let mut s = l.split(",");
+            (
+                s.next().unwrap().parse::<u32>().unwrap(),
+                s.next().unwrap().parse::<u32>().unwrap(),
+            )
+        })
+        .collect::<Vec<_>>();
 
     let mut min_obstacle = 1024;
     let mut max_obstacle = obstacles.len();
@@ -49,15 +64,28 @@ fn part2(input: &str) -> String {
         let mid = (min_obstacle + max_obstacle) / 2;
         let obstacles = obstacles.iter().take(mid).cloned().collect::<HashSet<_>>();
         match pathfinding(dims, start, end, &obstacles) {
-            Some(_) => {min_obstacle = mid + 1;}
-            None => {max_obstacle = mid;}
+            Some(_) => {
+                min_obstacle = mid + 1;
+            }
+            None => {
+                max_obstacle = mid;
+            }
         }
     }
 
-    format!("{},{}", obstacles[min_obstacle-1].0, obstacles[min_obstacle-1].1)
+    format!(
+        "{},{}",
+        obstacles[min_obstacle - 1].0,
+        obstacles[min_obstacle - 1].1
+    )
 }
 
-fn pathfinding(dims: (u32, u32), start: (u32, u32), end: (u32, u32), obstacles: &HashSet<(u32, u32)>) -> Option<u32> {
+fn pathfinding(
+    dims: (u32, u32),
+    start: (u32, u32),
+    end: (u32, u32),
+    obstacles: &HashSet<(u32, u32)>,
+) -> Option<u32> {
     let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
     queue.push_back((start, 0));
@@ -75,7 +103,11 @@ fn pathfinding(dims: (u32, u32), start: (u32, u32), end: (u32, u32), obstacles: 
         let dirs = [(0, 1), (0, -1), (1, 0), (-1, 0)];
         for dir in dirs.iter() {
             let new_pos = (pos.0 as i32 + dir.0, pos.1 as i32 + dir.1);
-            if new_pos.0 < 0 || new_pos.1 < 0 || new_pos.0 > dims.0 as i32 || new_pos.1 > dims.1 as i32 {
+            if new_pos.0 < 0
+                || new_pos.1 < 0
+                || new_pos.0 > dims.0 as i32
+                || new_pos.1 > dims.1 as i32
+            {
                 continue;
             }
 
@@ -90,4 +122,3 @@ fn pathfinding(dims: (u32, u32), start: (u32, u32), end: (u32, u32), obstacles: 
 
     None
 }
-
