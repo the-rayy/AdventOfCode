@@ -11,10 +11,10 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    //let part2_start = Instant::now();
-    //let part2_ans = part2(&input);
-    //println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    //println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 fn part1(input: &str) -> u32 {
@@ -29,13 +29,42 @@ fn part1(input: &str) -> u32 {
         Some((s.next().unwrap().parse::<u32>().unwrap(), s.next().unwrap().parse::<u32>().unwrap()))
     }).collect::<HashSet<_>>();
 
+    pathfinding(dims, start, end, &obstacles).unwrap()
+}
+
+fn part2(input: &str) -> String {
+    let dims = (70, 70);
+    let start = (0, 0);
+    let end = (70, 70);
+
+    let obstacles = input.lines().map(|l| {
+        let mut s = l.split(",");
+        (s.next().unwrap().parse::<u32>().unwrap(), s.next().unwrap().parse::<u32>().unwrap())
+    }).collect::<Vec<_>>();
+
+    let mut min_obstacle = 1024;
+    let mut max_obstacle = obstacles.len();
+
+    while min_obstacle < max_obstacle {
+        let mid = (min_obstacle + max_obstacle) / 2;
+        let obstacles = obstacles.iter().take(mid).cloned().collect::<HashSet<_>>();
+        match pathfinding(dims, start, end, &obstacles) {
+            Some(_) => {min_obstacle = mid + 1;}
+            None => {max_obstacle = mid;}
+        }
+    }
+
+    format!("{},{}", obstacles[min_obstacle-1].0, obstacles[min_obstacle-1].1)
+}
+
+fn pathfinding(dims: (u32, u32), start: (u32, u32), end: (u32, u32), obstacles: &HashSet<(u32, u32)>) -> Option<u32> {
     let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
     queue.push_back((start, 0));
 
     while let Some((pos, steps)) = queue.pop_front() {
         if pos == end {
-            return steps;
+            return Some(steps);
         }
 
         if visited.contains(&pos) {
@@ -59,6 +88,6 @@ fn part1(input: &str) -> u32 {
         }
     }
 
-    unreachable!();
+    None
 }
 
