@@ -19,9 +19,17 @@ fn main() {
 
 fn part1(input: &str) -> u32 {
     let mut lines = input.lines();
-    let towels = lines.next().unwrap().split(", ").map(|x| x.chars().collect::<Vec<_>>()).collect::<Vec<_>>();
+    let towels = lines
+        .next()
+        .unwrap()
+        .split(", ")
+        .map(|x| x.chars().collect::<Vec<_>>())
+        .collect::<Vec<_>>();
     _ = lines.next(); //empty line
-    lines.map(|x| x.chars().collect::<Vec<_>>()).filter(|x| possible(&towels, x)).count() as u32
+    lines
+        .map(|x| x.chars().collect::<Vec<_>>())
+        .filter(|x| possible(&towels, x))
+        .count() as u32
 }
 
 fn possible(towels: &Vec<Vec<char>>, design: &[char]) -> bool {
@@ -44,14 +52,26 @@ fn possible(towels: &Vec<Vec<char>>, design: &[char]) -> bool {
 
 fn part2(input: &str) -> u64 {
     let mut lines = input.lines();
-    let towels = lines.next().unwrap().split(", ").map(|x| x.chars().collect::<Vec<_>>()).collect::<Vec<_>>();
+    let towels = lines
+        .next()
+        .unwrap()
+        .split(", ")
+        .map(|x| x.chars().collect::<Vec<_>>())
+        .collect::<Vec<_>>();
     _ = lines.next(); //empty line
-    //
+                      //
     let mut cache = HashMap::new();
-    lines.map(|x| x.chars().collect::<Vec<_>>()).map(|x| possibillities(&towels, &mut cache, &x)).sum::<u64>()
+    lines
+        .map(|x| x.chars().collect::<Vec<_>>())
+        .map(|x| possibillities(&towels, &mut cache, &x))
+        .sum::<u64>()
 }
 
-fn possibillities(towels: &Vec<Vec<char>>, cache: &mut HashMap<String, u64>, design: &[char]) -> u64 {
+fn possibillities(
+    towels: &Vec<Vec<char>>,
+    cache: &mut HashMap<String, u64>,
+    design: &[char],
+) -> u64 {
     if let Some(&res) = cache.get(&design.iter().collect::<String>()) {
         return res;
     }
@@ -60,19 +80,20 @@ fn possibillities(towels: &Vec<Vec<char>>, cache: &mut HashMap<String, u64>, des
         return 1;
     }
 
-    towels.iter().map(|towel| {
-        if towel.len() > design.len() {
-            return 0;
-        }
+    towels
+        .iter()
+        .map(|towel| {
+            if towel.len() > design.len() {
+                return 0;
+            }
 
-        if towel != &design[0..towel.len()] {
-            return 0;
-        }
+            if towel != &design[0..towel.len()] {
+                return 0;
+            }
 
-        let res = possibillities(towels, cache, &design[towel.len()..]);
-        cache.insert(design[towel.len()..].iter().collect(), res);
-        res
-    }).sum()
+            let res = possibillities(towels, cache, &design[towel.len()..]);
+            cache.insert(design[towel.len()..].iter().collect(), res);
+            res
+        })
+        .sum()
 }
-
-
