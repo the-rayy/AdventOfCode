@@ -55,8 +55,7 @@ fn part1(input: &str) -> u32 {
 
     let mut saves = vec![];
     for pos in shortest.iter() {
-        //for dir in [(1, 1), (1, -1), (-1, 1), (-1, -1), (2, 0), (-2, 0), (0, 2), (0, -2)].iter() {
-        for dir in [(2, 0), (-2, 0), (0, 2), (0, -2)].iter() {
+        for dir in [(1, 1), (1, -1), (-1, 1), (-1, -1), (2, 0), (-2, 0), (0, 2), (0, -2)].iter() {
             let new_pos = (pos.0 + dir.0, pos.1 + dir.1);
             let old_dist = dists_to_end.get(pos).unwrap();
             if let Some(new_dist) = dists_to_end.get(&new_pos) {
