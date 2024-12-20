@@ -55,7 +55,8 @@ fn part1(input: &str) -> u32 {
 
     let mut saves = vec![];
     for pos in shortest.iter() {
-        for dir in [(1, 1), (1, -1), (-1, 1), (-1, -1), (2, 0), (-2, 0), (0, 2), (0, -2)].iter() {
+        //for dir in [(1, 1), (1, -1), (-1, 1), (-1, -1), (2, 0), (-2, 0), (0, 2), (0, -2)].iter() {
+        for dir in points_in_manhattan_radius(2).iter() {
             let new_pos = (pos.0 + dir.0, pos.1 + dir.1);
             let old_dist = dists_to_end.get(pos).unwrap();
             if let Some(new_dist) = dists_to_end.get(&new_pos) {
@@ -104,4 +105,15 @@ fn shortest_path(grid: &HashMap<(i32, i32), char>, start: (i32, i32)) -> Vec<(i3
     unreachable!();
 }
 
+fn points_in_manhattan_radius(radius: i32) -> Vec<(i32, i32)> { 
+    let mut points = Vec::new(); 
+    for x in -radius..=radius { 
+        let y_range = radius - x.abs(); 
+        for y in -y_range..=y_range { 
+            points.push((x, y)); 
+        } 
+    } 
+ 
+    points 
+} 
 
