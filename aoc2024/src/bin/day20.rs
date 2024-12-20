@@ -1,9 +1,9 @@
+use rayon::prelude::*;
 use std::time::Instant;
 use std::{collections::VecDeque, fs};
-use rayon::prelude::*;
 
 use hashbrown::{HashMap, HashSet};
-    
+
 fn main() {
     let input = fs::read_to_string("data/day20.txt").expect("Unable to load input file");
 
@@ -49,7 +49,7 @@ fn part1(input: &str) -> u32 {
                 }
             }
         }
-    };
+    }
 
     let shortest = shortest_path(&grid, start);
 
@@ -64,9 +64,8 @@ fn part1(input: &str) -> u32 {
                     saves.push(save);
                 }
             }
-
         }
-    };
+    }
 
     saves.iter().filter(|x| **x >= 100).count() as u32
 }
@@ -102,7 +101,7 @@ fn part2(input: &str) -> u32 {
                 }
             }
         }
-    };
+    }
 
     let shortest = shortest_path(&grid, start);
 
@@ -117,9 +116,8 @@ fn part2(input: &str) -> u32 {
                     saves.push(save);
                 }
             }
-
         }
-    };
+    }
 
     saves.iter().filter(|x| **x >= 100).count() as u32
 }
@@ -152,20 +150,19 @@ fn shortest_path(grid: &HashMap<(i32, i32), char>, start: (i32, i32)) -> Vec<(i3
                 }
             }
         }
-    };
+    }
 
     unreachable!();
 }
 
-fn points_in_manhattan_radius(radius: i32) -> Vec<(i32, i32)> { 
-    let mut points = Vec::new(); 
-    for x in -radius..=radius { 
-        let y_range = radius - x.abs(); 
-        for y in -y_range..=y_range { 
-            points.push((x, y)); 
-        } 
-    } 
- 
-    points 
-} 
+fn points_in_manhattan_radius(radius: i32) -> Vec<(i32, i32)> {
+    let mut points = Vec::new();
+    for x in -radius..=radius {
+        let y_range = radius - x.abs();
+        for y in -y_range..=y_range {
+            points.push((x, y));
+        }
+    }
 
+    points
+}
