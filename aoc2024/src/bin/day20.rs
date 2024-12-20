@@ -12,10 +12,10 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    //let part2_start = Instant::now();
-    //let part2_ans = part2(&input, part1_ans);
-    //println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    //println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 fn part1(input: &str) -> u32 {
@@ -55,13 +55,65 @@ fn part1(input: &str) -> u32 {
 
     let mut saves = vec![];
     for pos in shortest.iter() {
-        //for dir in [(1, 1), (1, -1), (-1, 1), (-1, -1), (2, 0), (-2, 0), (0, 2), (0, -2)].iter() {
         for dir in points_in_manhattan_radius(2).iter() {
             let new_pos = (pos.0 + dir.0, pos.1 + dir.1);
             let old_dist = dists_to_end.get(pos).unwrap();
             if let Some(new_dist) = dists_to_end.get(&new_pos) {
                 if *old_dist > *new_dist + 2 {
                     let save = old_dist - new_dist - 2;
+                    saves.push(save);
+                }
+            }
+
+        }
+    };
+
+    saves.iter().filter(|x| **x >= 100).count() as u32
+}
+
+fn part2(input: &str) -> u32 {
+    let grid: HashMap<(i32, i32), char> = input
+        .lines()
+        .enumerate()
+        .map(|(i, line)| {
+            line.chars()
+                .enumerate()
+                .map(move |(j, c)| ((i as i32, j as i32), c))
+        })
+        .flatten()
+        .collect();
+    let start = grid.iter().find(|(_, v)| **v == 'S').unwrap().0.clone();
+    let end = grid.iter().find(|(_, v)| **v == 'E').unwrap().0.clone();
+
+    let mut dists_to_end = HashMap::new();
+    dists_to_end.insert(end, 0);
+    let mut queue = VecDeque::new();
+    queue.push_back((end, 0));
+    let dirs = [(0, 1), (1, 0), (0, -1), (-1, 0)];
+    while let Some((pos, dist)) = queue.pop_front() {
+        for dir in dirs.iter() {
+            let new_pos = (pos.0 + dir.0, pos.1 + dir.1);
+            if let Some(x) = grid.get(&new_pos) {
+                if *x != '#' {
+                    if !dists_to_end.contains_key(&new_pos) {
+                        dists_to_end.insert(new_pos, dist + 1);
+                        queue.push_back((new_pos, dist + 1));
+                    }
+                }
+            }
+        }
+    };
+
+    let shortest = shortest_path(&grid, start);
+
+    let mut saves = vec![];
+    for pos in shortest.iter() {
+        for dir in points_in_manhattan_radius(20).iter() {
+            let new_pos = (pos.0 + dir.0, pos.1 + dir.1);
+            let old_dist = dists_to_end.get(pos).unwrap();
+            if let Some(new_dist) = dists_to_end.get(&new_pos) {
+                if *old_dist > *new_dist + dir.0.abs() + dir.1.abs() {
+                    let save = old_dist - new_dist - dir.0.abs() - dir.1.abs();
                     saves.push(save);
                 }
             }
