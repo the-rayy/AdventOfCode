@@ -2,7 +2,7 @@ use std::fs;
 use std::time::Instant;
 
 use itertools::Itertools;
-
+    
 fn main() {
     let input = fs::read_to_string("data/day02.txt").expect("Unable to load input file");
 
