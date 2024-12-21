@@ -1,7 +1,7 @@
 use std::fs;
 use std::sync::{LazyLock, Mutex};
 use std::time::Instant;
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 use itertools::Itertools;
   
 fn main() {
@@ -12,24 +12,34 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    //let part2_start = Instant::now();
-    //let part2_ans = part2(&input);
-    //println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    //println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 fn part1(input: &str) -> u32 {
   input.lines().map(|l| {
-    let len = solve(l);
+    let len = solve(l, 2);
     let numeric = l.strip_suffix("A").unwrap().parse::<u32>().unwrap();
     len * numeric
   }).sum()
 }
 
-fn solve(input: &str) -> u32 {
+fn part2(input: &str) -> u32 {
+  input.lines().map(|l| {
+    let len = solve(l, 25);
+    let numeric = l.strip_suffix("A").unwrap().parse::<u32>().unwrap();
+    len * numeric
+  }).sum()
+}
+
+fn solve(input: &str, robots: u32) -> u32 {
   let numpad = Box::new(Numpad{});
-  let arrowpad = Box::new(Arrowpad{pad: numpad});
-  let arrowpad = Box::new(Arrowpad{pad: arrowpad});
+  let mut arrowpad = Box::new(Arrowpad{pad: numpad});
+  for _ in 0..robots-1 {
+    arrowpad = Box::new(Arrowpad{pad: arrowpad});
+  }
 
   let chars = input.chars().collect::<Vec<char>>();
 
@@ -96,7 +106,7 @@ impl Pad for Numpad {
       pos = *c;
     }
 
-    moves
+    moves.into_iter().collect::<HashSet<Vec<char>>>().into_iter().collect::<Vec<Vec<char>>>()
   }
 }
 
