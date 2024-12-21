@@ -2,7 +2,7 @@ use std::fs;
 use std::time::Instant;
 
 use hashbrown::HashMap;
-  
+
 fn main() {
     let input = fs::read_to_string("data/day01.txt").expect("Unable to load input file");
 
