@@ -100,26 +100,26 @@ fn arrowpad(pos: char, c: char, level: u32, cache: &mut HashMap<(char, char, u32
     return *x;
   }
 
-    let mv = match (pos, c) {
-          ('A', '^') => vec!['<', 'A'],
-          ('A', '<') => vec!['<', '<', '^', 'A'],
-          ('A', '>') => vec!['v', 'A'],
-          ('A', 'v') => vec!['<', 'v', 'A'],
-          ('<', 'A') => vec!['>', '>', '^', 'A'],
-          ('<', 'v') => vec!['>', 'A'],
-          ('<', '^') => vec!['^', '>', 'A'],
-          ('^', 'A') => vec!['>', 'A'],
-          ('^', '>') => vec!['v', '>', 'A'],
-          ('^', '<') => vec!['v', '<', 'A'],
-          ('>', '^') => vec!['<', '^', 'A'],
-          ('>', 'v') => vec!['<', 'A'],
-          ('>', 'A') => vec!['^', 'A'],
-          ('v', '<') => vec!['<', 'A'],
-          ('v', '>') => vec!['>', 'A'],
-          ('v', 'A') => vec!['^', '>', 'A'],
+    let options = match (pos, c) {
+          ('A', '^') => vec![vec!['<', 'A']],
+          ('A', '<') => vec![vec!['v', '<', '<', 'A'], vec!['<', 'v', '<', 'A']],
+          ('A', '>') => vec![vec!['v', 'A']],
+          ('A', 'v') => vec![vec!['<', 'v', 'A'], vec!['v', '<', 'A']],
+          ('<', 'A') => vec![vec!['>', '>', '^', 'A'], vec!['>', '^', '>', 'A']],
+          ('<', 'v') => vec![vec!['>', 'A']],
+          ('<', '^') => vec![vec!['>', '^', 'A']],
+          ('^', 'A') => vec![vec!['>', 'A']],
+          ('^', '>') => vec![vec!['v', '>', 'A'], vec!['>', 'v',  'A']],
+          ('^', '<') => vec![vec!['v', '<', 'A']],
+          ('>', '^') => vec![vec!['<', '^', 'A'], vec!['^', '<', 'A']],
+          ('>', 'v') => vec![vec!['<', 'A']],
+          ('>', 'A') => vec![vec!['^', 'A']],
+          ('v', '<') => vec![vec!['<', 'A']],
+          ('v', '>') => vec![vec!['>', 'A']],
+          ('v', 'A') => vec![vec!['^', '>', 'A'], vec!['>', '^', 'A']],
           (x, y) => {
             if x == y {
-              vec!['A']
+              vec![vec!['A']]
             } else {
               panic!("Unknown move: {} -> {}", x, y) 
             }
@@ -127,12 +127,14 @@ fn arrowpad(pos: char, c: char, level: u32, cache: &mut HashMap<(char, char, u32
         };
 
   let ret = if level == 0 {
-    mv.len() as u64
+    options[0].len() as u64
   } else {
-    let mv = vec!['A'].into_iter().chain(mv.iter().cloned()).collect::<Vec<char>>();
-    mv.windows(2).map(|c| {
-      arrowpad(c[0], c[1], level-1, cache)
-    }).sum()
+    options.into_iter().map(|mv| {
+      let mv = vec!['A'].into_iter().chain(mv.iter().cloned()).collect::<Vec<char>>();
+      mv.windows(2).map(|c| {
+        arrowpad(c[0], c[1], level-1, cache)
+      }).sum()
+    }).min().unwrap()
   };
 
   cache.insert((pos, c, level), ret);
