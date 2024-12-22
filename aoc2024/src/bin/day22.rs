@@ -33,7 +33,7 @@ fn part1(input: &str) -> u64 {
 fn part2(input: &str) -> u64 {
   let steps = 2000;
 
-  let hashmaps = input.lines().enumerate().map(|(buyer, line)| {
+  let hashmaps = input.lines().map(|line| {
     let mut h = line.parse().unwrap();
     let last_digits = (0..steps+1).map(|_| {
       let last_digit = h % 10;
@@ -43,11 +43,9 @@ fn part2(input: &str) -> u64 {
 
     let diffs = last_digits.windows(2).map(|w| w[1] - w[0]).collect::<Vec<_>>();
 
-    let sequences = diffs.windows(4).enumerate().take(last_digits.len()-4).rev().map(|(idx, seq)| {
+    diffs.windows(4).enumerate().take(last_digits.len()-4).rev().map(|(idx, seq)| {
       (seq.iter().cloned().collect::<Vec<_>>(), last_digits[idx+4] as u64)
-    }).collect::<HashMap<_, _>>();
-
-    sequences
+    }).collect::<HashMap<_, _>>()
 
   }).fold(HashMap::new(), |mut acc, h| {
       for (k, v) in h {
