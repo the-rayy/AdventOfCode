@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 use std::fs;
+use std::ops::BitXor;
 use std::time::Instant;
 
 use hashbrown::HashMap;
@@ -9,6 +10,7 @@ fn main() {
 
     let part1_start = Instant::now();
     let part1_ans = part1(&input);
+    assert_eq!(part1_ans, 56729630917616);
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
@@ -18,16 +20,57 @@ fn main() {
     //println!("Part 2 ans: {:?}", part2_ans);
 }
 
+#[derive(Debug, Clone)]
 struct Instruction {
   in1: String,
   op: String,
   in2: String,
-  out: String,
+}
+
+struct Adder {
+  cache: HashMap<String, bool>,
+  instructions: HashMap<String, Instruction>,
+  bitlen: usize,
+}
+
+impl Adder {
+  fn integer(&mut self, start: &str) -> u64 {
+    let mut result = 0;
+    for pos in 0..=self.bitlen {
+      let key = format!("{}{:0>2}", start, pos);
+      if self.solve(&key) {
+        result |= 1 << pos;
+      }
+    }
+
+    result
+  }
+
+  fn solve(&mut self, key: &str) -> bool {
+    match self.cache.get(key) {
+      Some(x) => *x,
+      None => {
+        let instruction = self.instructions.get(key).unwrap().clone();
+        let in1 = self.solve(&instruction.in1);
+        let in2 = self.solve(&instruction.in2);
+
+        let out = match instruction.op.as_str() {
+          "AND" => in1 && in2,
+          "OR" => in1 || in2,
+          "XOR" => in1 ^ in2,
+          _ => unreachable!(),
+        };
+
+        self.cache.insert(key.to_string(), out);
+        out
+      }
+    }
+  }
 }
 
 fn part1(input: &str) -> u64 {
   let mut input = input.split("\n\n");
-  let mut cache = input.next().unwrap().lines().map(|line| {
+  let cache = input.next().unwrap().lines().map(|line| {
     let mut line = line.split(": ");
     let key = line.next().unwrap().to_string();
     let value = match line.next().unwrap() {
@@ -38,47 +81,18 @@ fn part1(input: &str) -> u64 {
     (key, value)
   }).collect::<HashMap<String, bool>>();
   
-  let mut instructions = input.next().unwrap().lines().map(|line| {
+  let instructions = input.next().unwrap().lines().map(|line| {
     let line = line.replace(" ->", "");
     let mut line = line.split(" ");
     let in1 = line.next().unwrap().to_string();
     let op = line.next().unwrap().to_string();
     let in2 = line.next().unwrap().to_string();
     let out = line.next().unwrap().to_string();
-    Instruction { in1, op, in2, out }
-  }).collect::<VecDeque<Instruction>>();
+    (out, Instruction { in1, op, in2 })
+  }).collect::<HashMap<String, Instruction>>();
 
-  while let Some(x) = instructions.pop_front() {
-    let in1 = cache.get(x.in1.as_str());
-    let in2 = cache.get(x.in2.as_str());
+  let bitlen = cache.len() / 2;
+  let mut adder = Adder { cache, instructions, bitlen };
+  adder.integer("z")
+} 
 
-    if in1.is_none() || in2.is_none() {
-      instructions.push_back(x);
-      continue;
-    }
-
-    let out = match x.op.as_str() {
-      "AND" => *in1.unwrap() && *in2.unwrap(),
-      "OR" => *in1.unwrap() || *in2.unwrap(),
-      "XOR" => in1.unwrap() ^ in2.unwrap(),
-      _ => unreachable!(),
-    };
-
-    cache.insert(x.out, out);
-  }
-
-    let mut keys = cache.keys().filter(|x| x.starts_with("z")).collect::<Vec<_>>();
-    keys.sort();
-
-    let mut result = 0;
-    for (pos, key) in keys.iter().enumerate() {
-      let key = cache.get(*key).unwrap();
-      if *key {
-        result |= 1 << pos;
-      }
-    }
-
-    result
-
-
-}    
