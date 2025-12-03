@@ -9,10 +9,10 @@ fn main() {
     println!("Part 1 time: {:.2?}", part1_start.elapsed());
     println!("Part 1 ans: {:?}", part1_ans);
 
-    // let part2_start = Instant::now();
-    // let part2_ans = part2(&input);
-    // println!("Part 2 time: {:.2?}", part2_start.elapsed());
-    // println!("Part 2 ans: {:?}", part2_ans);
+    let part2_start = Instant::now();
+    let part2_ans = part2(&input);
+    println!("Part 2 time: {:.2?}", part2_start.elapsed());
+    println!("Part 2 ans: {:?}", part2_ans);
 }
 
 fn part1(input: &str) -> u32 {
@@ -31,6 +31,31 @@ fn part1(input: &str) -> u32 {
             let second = &bank[*first_idx + 1..bank.len()].iter().max().unwrap();
 
             10 * (*first) + *second
+        })
+        .sum()
+}
+
+fn part2(input: &str) -> u32 {
+    input
+        .lines()
+        .map(|line| {
+            let bank: Vec<u32> = line.chars().map(|c| c.to_digit(10).unwrap()).collect();
+
+            let mut start = 0;
+            let mut joltage = 0;
+            for digit in 1..=12 {
+                let (idx, val) = &bank[start..bank.len() - digit]
+                    .iter()
+                    .enumerate()
+                    .max_by(|(i, a), (j, b)| match a.cmp(b) {
+                        std::cmp::Ordering::Equal => i.cmp(j).reverse(),
+                        x => x,
+                    })
+                    .unwrap();
+              start = idx+1;
+              joltage += val * 10_u32.pow(12-(digit as u32)+1);
+            }
+            joltage
         })
         .sum()
 }
