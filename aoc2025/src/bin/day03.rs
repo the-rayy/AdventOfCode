@@ -35,16 +35,19 @@ fn part1(input: &str) -> u32 {
         .sum()
 }
 
-fn part2(input: &str) -> u32 {
+fn part2(input: &str) -> u64 {
     input
         .lines()
         .map(|line| {
-            let bank: Vec<u32> = line.chars().map(|c| c.to_digit(10).unwrap()).collect();
+            let bank: Vec<u64> = line
+                .chars()
+                .map(|c| c.to_digit(10).unwrap() as u64)
+                .collect();
 
             let mut start = 0;
             let mut joltage = 0;
             for digit in 1..=12 {
-                let (idx, val) = &bank[start..bank.len() - digit]
+                let (idx, val) = &bank[start..bank.len() - (12 - digit)]
                     .iter()
                     .enumerate()
                     .max_by(|(i, a), (j, b)| match a.cmp(b) {
@@ -52,8 +55,8 @@ fn part2(input: &str) -> u32 {
                         x => x,
                     })
                     .unwrap();
-              start = idx+1;
-              joltage += val * 10_u32.pow(12-(digit as u32)+1);
+                start += *idx + 1;
+                joltage += *val * 10_u64.pow(12 - (digit as u32));
             }
             joltage
         })
