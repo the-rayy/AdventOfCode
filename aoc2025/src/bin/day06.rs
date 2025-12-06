@@ -60,7 +60,9 @@ fn part2(input: &str) -> u64 {
             .collect::<String>()
             .parse::<u64>()
             .unwrap_or(0);
-        if num == 0 { continue };
+        if num == 0 {
+            continue;
+        };
 
         if *line.last().unwrap() == '+' {
             let mut total = num;
