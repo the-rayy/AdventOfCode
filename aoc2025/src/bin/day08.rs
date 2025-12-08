@@ -39,30 +39,38 @@ fn part1(input: &str) -> u64 {
     let mut circuits: Vec<Vec<(i64, i64, i64)>> = vec![];
 
     for (first, second, _) in foo {
-      let cloned = circuits.clone();
-      let first_idx = cloned.iter().find_position(|p| p.contains(&first));
-      let second_idx = cloned.iter().find_position(|p| p.contains(&second));
+        let cloned = circuits.clone();
+        let first_idx = cloned.iter().find_position(|p| p.contains(&first));
+        let second_idx = cloned.iter().find_position(|p| p.contains(&second));
 
-      match (first_idx, second_idx) {
-        (None, None) => {
-          circuits.push(vec![first.clone(), second.clone()]);
+        match (first_idx, second_idx) {
+            (None, None) => {
+                circuits.push(vec![first.clone(), second.clone()]);
+            }
+            (Some(x), Some(y)) => {
+                if x == y {
+                    continue;
+                };
+                let second = circuits.get(y.0).unwrap().clone();
+                circuits[x.0].extend(second.iter().cloned());
+                circuits.remove(y.0);
+            }
+            (Some(x), None) => {
+                circuits[x.0].push(second);
+            }
+            (None, Some(y)) => {
+                circuits[y.0].push(first);
+            }
         }
-        (Some(x), Some(y)) => {
-          if x == y { continue; };
-          let second = circuits.get(y.0).unwrap().clone();
-          circuits[x.0].extend(second.iter().cloned());
-          circuits.remove(y.0);
-        },
-        (Some(x), None) => {
-          circuits[x.0].push(second);
-        },
-        (None, Some(y)) => {
-          circuits[y.0].push(first);
-        }
-      }
     }
 
-    circuits.iter().map(|x| x.len()).sorted().rev().take(3).product::<usize>() as u64
+    circuits
+        .iter()
+        .map(|x| x.len())
+        .sorted()
+        .rev()
+        .take(3)
+        .product::<usize>() as u64
 }
 
 fn part2(input: &str) -> u64 {
@@ -86,31 +94,33 @@ fn part2(input: &str) -> u64 {
     let mut circuits: Vec<Vec<(i64, i64, i64)>> = vec![];
 
     for (first, second, _) in foo {
-      let cloned = circuits.clone();
-      let first_idx = cloned.iter().find_position(|p| p.contains(&first));
-      let second_idx = cloned.iter().find_position(|p| p.contains(&second));
+        let cloned = circuits.clone();
+        let first_idx = cloned.iter().find_position(|p| p.contains(&first));
+        let second_idx = cloned.iter().find_position(|p| p.contains(&second));
 
-      match (first_idx, second_idx) {
-        (None, None) => {
-          circuits.push(vec![first.clone(), second.clone()]);
+        match (first_idx, second_idx) {
+            (None, None) => {
+                circuits.push(vec![first.clone(), second.clone()]);
+            }
+            (Some(x), Some(y)) => {
+                if x == y {
+                    continue;
+                };
+                let second = circuits.get(y.0).unwrap().clone();
+                circuits[x.0].extend(second.iter().cloned());
+                circuits.remove(y.0);
+            }
+            (Some(x), None) => {
+                circuits[x.0].push(second);
+            }
+            (None, Some(y)) => {
+                circuits[y.0].push(first);
+            }
         }
-        (Some(x), Some(y)) => {
-          if x == y { continue; };
-          let second = circuits.get(y.0).unwrap().clone();
-          circuits[x.0].extend(second.iter().cloned());
-          circuits.remove(y.0);
-        },
-        (Some(x), None) => {
-          circuits[x.0].push(second);
-        },
-        (None, Some(y)) => {
-          circuits[y.0].push(first);
-        }
-      }
 
-      if circuits.len() == 1 && circuits[0].len() == input.lines().count() {
-        return (first.0 * second.0) as u64
-      }
+        if circuits.len() == 1 && circuits[0].len() == input.lines().count() {
+            return (first.0 * second.0) as u64;
+        }
     }
-  unreachable!();
+    unreachable!();
 }
