@@ -24,6 +24,6 @@ fn part1(input: &str) -> u64 {
       (x, y)
     }).combinations(2).map(|p| {
       ((p[0].0 - p[1].0).abs() + 1) * ((p[0].1 - p[1].1).abs() + 1)
-}).min().unwrap() as u64
+}).max().unwrap() as u64
 }
 
