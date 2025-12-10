@@ -5,6 +5,7 @@ use std::time::Instant;
 
 use hashbrown::HashSet;
 use itertools::Itertools;
+use microlp::{LinearExpr, Problem};
 use rayon::prelude::*;
 
 fn main() {
@@ -97,73 +98,30 @@ fn part2(input: &str) -> u64 {
         .sorted_by_key(|b| b.len())
         .rev()
         .collect_vec();
-      depress(&buttons, &target, 0).unwrap()
+
+      let mut problem = Problem::new(microlp::OptimizationDirection::Minimize);
+      let max = target.iter().max().unwrap();
+      let variables = (0..buttons.len())
+        .map(|_| problem.add_integer_var(1.0, (0, *max as i32)))
+        .collect_vec();
+
+      for (i, t) in target.iter().enumerate() {
+        problem.add_constraint(
+          buttons
+            .iter()
+            .zip(&variables)
+            .filter(|(b, _)| b.contains(&i))
+            .fold(LinearExpr::empty(), |mut ex, (_, &var)| {
+              ex.add(var, 1.0);
+              ex
+            }),
+          microlp::ComparisonOp::Eq,
+          *t as f64,
+        );
+      }
+      problem.solve().unwrap().objective().round() as u64
     })
     .sum()
-}
-
-fn depress(buttons: &[Vec<usize>], lights: &Vec<i64>, presses: u64) -> Option<u64> {
-  if lights.iter().any(|x| *x < 0) {
-    return None;
-  }
-
-  if buttons.is_empty() && lights.iter().all(|x| *x == 0) {
-    return Some(presses);
-  }
-
-  if buttons.is_empty() {
-    return None;
-  }
-
-  let lights_needed_to_light = lights
-    .iter()
-    .enumerate()
-    .filter(|(_, x)| **x > 0)
-    .map(|(i, _)| i)
-    .collect::<Vec<usize>>();
-
-  for i in &lights_needed_to_light {
-    let possible_buttons = buttons
-      .iter()
-      .enumerate()
-      .filter(|(_, b)| b.contains(&i))
-      .map(|(i, _)| i)
-      .collect_vec();
-    if possible_buttons.len() == 0 {
-      return None;
-    }
-    if possible_buttons.len() == 1 {
-      let button = &buttons[possible_buttons[0]];
-      let mut tail = buttons.iter().cloned().collect_vec();
-      tail.remove(possible_buttons[0]);
-
-      let press = lights[*i].abs() as u64;
-      let lights = press2(lights, button, press);
-      return depress(&tail, &lights, presses + press)
-    }
-  }
-
-  let button = &buttons[0];
-  let tail = &buttons[1..];
-
-  let max = lights
-    .iter()
-    .enumerate()
-    .filter(|(i, _)| button.contains(i))
-    .map(|(_, x)| x)
-    .min()
-    .unwrap();
-  for i in (0..=*max as u64).rev() {
-    let lights = press2(lights, button, i);
-    match depress(tail, &lights, presses + i) {
-      None => continue,
-      Some(x) => {
-        return Some(x);
-      }
-    }
-  }
-
-  None
 }
 
 fn press(lights: &Vec<u64>, button: &Vec<usize>, times: u64) -> Vec<u64> {
@@ -171,16 +129,6 @@ fn press(lights: &Vec<u64>, button: &Vec<usize>, times: u64) -> Vec<u64> {
 
   for btn in button {
     lights[*btn] += times;
-  }
-
-  lights
-}
-
-fn press2(lights: &Vec<i64>, button: &Vec<usize>, times: u64) -> Vec<i64> {
-  let mut lights = lights.clone();
-
-  for btn in button {
-    lights[*btn] -= times as i64;
   }
 
   lights
