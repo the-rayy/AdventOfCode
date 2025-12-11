@@ -12,10 +12,10 @@ fn main() {
   println!("Part 1 time: {:.2?}", part1_start.elapsed());
   println!("Part 1 ans: {:?}", part1_ans);
 
-  // let part2_start = Instant::now();
-  // let part2_ans = part2(&input);
-  // println!("Part 2 time: {:.2?}", part2_start.elapsed());
-  // println!("Part 2 ans: {:?}", part2_ans);
+  let part2_start = Instant::now();
+  let part2_ans = part2(&input);
+  println!("Part 2 time: {:.2?}", part2_start.elapsed());
+  println!("Part 2 ans: {:?}", part2_ans);
 }
 
 fn part1(input: &str) -> u64 {
@@ -29,14 +29,85 @@ fn part1(input: &str) -> u64 {
     })
     .collect::<HashMap<_, _>>();
 
-  let start = "you";
-  dfs(&graph, start)
+  dfs(&graph, "you", "out", &vec![], &mut HashMap::new())
 }
 
-fn dfs(graph: &HashMap<&str, Vec<&str>>, current: &str) -> u64 {
-  if current == "out" {
+fn part2(input: &str) -> u64 {
+  let graph = input
+    .lines()
+    .map(|line| {
+      let mut foo = line.split(" ");
+      let input = foo.next().unwrap().strip_suffix(":").unwrap();
+      let outputs = foo.collect_vec();
+      (input, outputs)
+    })
+    .collect::<HashMap<_, _>>();
+
+  dfs(
+    &graph,
+    "svr",
+    "fft",
+    &vec!["dac", "out"],
+    &mut HashMap::new(),
+  ) * dfs(
+    &graph,
+    "fft",
+    "dac",
+    &vec!["svr", "out"],
+    &mut HashMap::new(),
+  ) * dfs(
+    &graph,
+    "dac",
+    "out",
+    &vec!["svr", "fft"],
+    &mut HashMap::new(),
+  ) + dfs(
+    &graph,
+    "svr",
+    "dac",
+    &vec!["fft", "out"],
+    &mut HashMap::new(),
+  ) * dfs(
+    &graph,
+    "dac",
+    "fft",
+    &vec!["svr", "out"],
+    &mut HashMap::new(),
+  ) * dfs(
+    &graph,
+    "fft",
+    "out",
+    &vec!["svr", "dac"],
+    &mut HashMap::new(),
+  )
+}
+
+fn dfs<'a>(
+  graph: &HashMap<&str, Vec<&'a str>>,
+  current: &'a str,
+  target: &str,
+  forbidden: &[&str],
+  cache: &mut HashMap<&'a str, u64>,
+) -> u64 {
+  if let Some(x) = cache.get(current) {
+    return *x;
+  }
+
+  if current == target {
+    cache.insert(current, 1);
     return 1;
   }
 
-  graph[current].iter().map(|x| dfs(graph, x)).sum::<u64>()
+  if forbidden.contains(&current) {
+    cache.insert(current, 0);
+    return 0;
+  }
+
+  let x = graph[current]
+    .iter()
+    .map(|x| dfs(graph, x, target, forbidden, cache))
+    .sum::<u64>();
+  cache.insert(current, x);
+
+  x
 }
