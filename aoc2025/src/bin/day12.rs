@@ -17,11 +17,9 @@ fn part1(input: &str) -> u64 {
     .unwrap()
     .lines()
     .filter(|input| {
-      let input = input.replace("x", " ").replace(":", "");
-      let mut s = input.split(" ");
-      let dimx = s.next().unwrap().parse::<usize>().unwrap();
-      let dimy = s.next().unwrap().parse::<usize>().unwrap();
-      let req_area = s.map(|x| x.parse::<usize>().unwrap() * 9).sum::<usize>();
+      let dimx = &input[0..2].parse::<usize>().unwrap();
+      let dimy = &input[3..5].parse::<usize>().unwrap();
+      let req_area = &input[7..].split(" ").map(|x| x.parse::<usize>().unwrap() * 9).sum::<usize>();
 
       let area = dimx * dimy;
 
